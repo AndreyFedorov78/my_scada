@@ -16,10 +16,7 @@ class Sensor(models.Model):
     class Meta:
         verbose_name = 'Данные'
         verbose_name_plural = 'Данные'
+        ordering = ['-date']
 
-
-"""
-  
-     def __str__(self):
-        return (self.user.last_name+' '+self.user.first_name+' / '+self.project.name)
-"""
+    def __str__(self):
+        return str(self.date)+' id='+str(self.sensorId)+' type='+str(self.type)+' data='+str(self.data)

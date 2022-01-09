@@ -1,10 +1,19 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.views.generic import View
+from django.db.models import Q
+from django.shortcuts import render
 from .models import Sensor
 from .serialalizers import SensorSerializer, SensorDetailSerializer
 
 # from django.shortcuts import render
 # Create your views here.
+
+
+class Index (View):
+    @staticmethod
+    def get(request):
+        return render(request, 'scada/index.html')
 
 
 class SensorView(APIView):
@@ -27,4 +36,18 @@ class SensorDetailView(APIView):
     def get(request, pk):
         sensor = Sensor.objects.get(id=pk)
         serializer = SensorDetailSerializer(sensor)
+        return Response(serializer.data)
+
+class AllSensors(APIView):
+    @staticmethod
+    def get(request):
+        all_sensors=[];
+        sensor = Sensor.objects.all().order_by('-date')
+        while len(sensor)>0:
+            all_sensors.append(sensor[0])
+            sensor_id = sensor[0].sensorId
+            dataType = sensor[0].type
+            sensor = sensor.exclude(Q(sensorId=sensor_id) & Q(type=dataType))
+            print (dataType,' ',sensor_id)
+        serializer = SensorSerializer(all_sensors, many=True)
         return Response(serializer.data)
