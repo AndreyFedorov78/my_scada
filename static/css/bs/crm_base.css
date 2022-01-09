@@ -1,0 +1,58 @@
+@media (max-width: 767px) {
+ .mt-15 {margin-top:15px !important;}
+.tl {text-align:left !important}
+    .custom-select-sm {
+    height: calc(1.5em + .5rem + 2px);
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    padding-left: .5rem;
+    font-size: .875rem;
+    margin-top: 10px;
+}
+main table  {    display: block;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;}
+
+ div#budgetlist table {
+    display: block;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    }
+    .work_table {
+    width: 100% !important;
+    border-collapse: collapse;
+}
+    .table-responsive {
+    display: block;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+}
+
+table td a.text-danger.font-weight-bold {
+    display: block;
+    position: relative;
+    left: -24px;
+    top: 1px;
+}
+
+@media print{
+  .sidebar{
+  display: none !important;
+  }
+  .col-sm.mr-3.shadow.p-3.mb-3.bg-white.rounded {box-shadow:none !important}
+  main {width:100% !important;    flex: 0 0 100% !important;
+    max-width: 100% !important;}
+}
+.form-search::placeholder {
+  color: #FFFFFF;
+  font-weight: bold;
+}
+.form-search {
+  color: #FFFFFF;
+  font-weight: bold;
+}
+table.table tr th {vertical-align:middle !important}

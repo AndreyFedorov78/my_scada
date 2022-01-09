@@ -1,0 +1,14 @@
+.data_menu {
+  display: inline-block;
+  background-color: #CFFFCF;
+  color: black;
+  font-size: 10px;
+  width:36px;
+  text-align: center;
+}
+
+.get_salary_tr {
+   width: 90px;
+   font-size:10px;
+   text-align: center;
+}

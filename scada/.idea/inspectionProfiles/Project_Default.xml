@@ -1,0 +1,68 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="HtmlUnknownAttribute" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="myValues">
+        <value>
+          <list size="0" />
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="JSUnresolvedFunction" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyCompatibilityInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ourVersions">
+        <value>
+          <list size="5">
+            <item index="0" class="java.lang.String" itemvalue="3.7" />
+            <item index="1" class="java.lang.String" itemvalue="3.8" />
+            <item index="2" class="java.lang.String" itemvalue="3.9" />
+            <item index="3" class="java.lang.String" itemvalue="3.10" />
+            <item index="4" class="java.lang.String" itemvalue="3.10" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="E114" />
+          <option value="E111" />
+          <option value="E701" />
+          <option value="W605" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnreachableCodeInspection" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="main.models.Comments.objects" />
+          <option value="main.models.Customer.objects" />
+          <option value="main.models.Projects.objects" />
+          <option value="main.models.Systemusers.objects" />
+          <option value="main.models.Projectcomresponsible.objects" />
+          <option value="main.models.CustomersList.objects" />
+          <option value="main.models.Projectresponsible.objects" />
+          <option value="main.models.Zatrats.objects" />
+          <option value="main.models.Zatrattypes.objects" />
+          <option value="main.models.Cities.objects" />
+          <option value="main.models.Statuses.objects" />
+          <option value="salary_project.models.WorkTimeShedule.objects" />
+          <option value="salary_project.models.SalaryProjectList.objects" />
+          <option value="salary_project.models.WorkDaysAndHolydays.objects" />
+          <option value="salary_project.models.SalaryProject.objects" />
+          <option value="salary_project.models.SalaryStaff.objects" />
+          <option value="salary_project.models.Holydays.objects" />
+          <option value="salary_project.models.SalaryStatement.objects" />
+          <option value="main.models.Favorites.objects" />
+          <option value="main.models.Approvedlists.objects" />
+          <option value="main.models.Profile.objects" />
+          <option value="test_micro_timer.RPi" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="RegExpRedundantEscape" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="XmlUnboundNsPrefix" enabled="false" level="WARNING" enabled_by_default="false" />
+  </profile>
+</component>
