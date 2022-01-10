@@ -3,6 +3,7 @@ new Vue({
     data: {
         sensors_list: [],
         rooms_list: [],
+	vent: [],
         listOfTypes : {'100': 'Температура', '200': 'CO2'},
         listOfMeters : {'100': 'C', '200': 'ppt'},
         listOfRooms : {'1' : 'Гостиная', '2' : 'Спальня'}
@@ -35,6 +36,12 @@ new Vue({
 
 
         });
+	fetch('/scada_api/vent/').then((response) => {
+            return response.json();
+        }).then((data) => {
+	    this.vent = data;
+	    console.log(this.vent)
+	})
     }
 })
 
