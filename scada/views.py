@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from .models import Sensor
 from .serialalizers import SensorSerializer, SensorDetailSerializer
+from .blynk import Blynk
 
 # from django.shortcuts import render
 # Create your views here.
@@ -14,6 +15,18 @@ class Index (View):
     @staticmethod
     def get(request):
         return render(request, 'scada/index.html')
+
+class Vent (APIView):
+    @staticmethod
+    def get(request):
+        result = Blynk()
+        return Response(result.data)
+
+    @staticmethod
+    def post(request):
+        result = Blynk()
+        result.put_data(request.data)
+        return  Response(status=201)
 
 
 class SensorView(APIView):
