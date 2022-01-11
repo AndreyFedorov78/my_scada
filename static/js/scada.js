@@ -29,9 +29,10 @@ new Vue({
     },
     methods: {
         async ventManage(name, val){
+            this.vent[name]=val;
             let toSend={};
             toSend[name]=val;
-            fetch_post('/scada_api/vent/', toSend).then(r  => this.load_last())
+            await fetch_post('/scada_api/vent/', toSend)
         },
         async load_last() {
             fetch('/scada_api/allsensors/').then((response) => {
