@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-db.sqlite3
 
 # C extensions
 *.so
@@ -110,6 +109,6 @@ media/
 
 # Ignore Django Migrations in Development if you are working on team
 
-**/migrations/**
-**/migrations
-**/migrations/__init__.py
+# **/migrations/**
+!**/migrations
+!**/migrations/__init__.py
