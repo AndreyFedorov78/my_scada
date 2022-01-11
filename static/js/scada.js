@@ -40,7 +40,7 @@ new Vue({
             return response.json();
         }).then((data) => {
 	    this.vent = data;
-	    console.log(this.vent)
+	    
 	})
     }
 })
