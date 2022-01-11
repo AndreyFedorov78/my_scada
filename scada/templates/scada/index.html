@@ -111,10 +111,10 @@
                                     <br>
                                     Возух из поменщения: {{vent.t_from_in}} C
                                     <br>
-                                    <span v-if="vent.rotor"> Ротор включен </span>
+                                    <span v-if="vent.rotor !=0 "> Ротор включен </span>
                                     <span v-else> Ротор выключен </span>
                                     <br>
-                                    <span v-if="vent.heating"> Нагреватель включен </span>
+                                    <span v-if="vent.heating != 0"> Нагреватель включен </span>
                                     <span v-else> Нагреватель выключен </span>
                                     <br>
                                 </h6>
