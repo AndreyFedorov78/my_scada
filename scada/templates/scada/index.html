@@ -4,17 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <meta name="author" content="Andrey FEdorov">
+    <meta name="author" content="Andrey Fedorov">
     <title>My scada</title>
-
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
 
     <!-- Favicons -->
-
     <meta name="theme-color" content="#7952b3">
-
 
     <style>
         .bd-placeholder-img {
@@ -36,110 +33,115 @@
     <!-- Custom styles for this template -->
     <link href="static/css/scada.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-info">
 {% verbatim %}
 
 <main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 bg-info">
     <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h2 class="h2">
-           Моя квартира
+            Моя квартира
         </h2>
 
     </div>
-    <div id="app">
-        <div class="row row-flex row-flex-wrap ">
-            <div class="col-sm mr-3 ml-3 shadow p-0 mb-5 rounded bg-light" v-for="column, index in sensors_list">
 
-                <div class="card-header">
-            <h4 class="my-0 font-weight-normal">{{ rooms_list[index] }}</h4>
-          </div>
-                <br>
-                <div v-for="sensor, index in column" class="ml-3 mr-3 p-0 mt-0 mb-0">
-                    <h5>{{ sensor.s_type }}: {{ sensor.data }} {{ sensor.meters }}
+    <div class="coneiner" id="app">
+
+        <div class="card-deck mb-3 text-center" v-for="item in  parseInt((sensors_list.length+1)/3+1)">
+            <div class="card mb-4 box-shadow" v-for="column in (sensors_list.length - (item-1)*3 > 2)? 3 : sensors_list.length - (item-1)*3+1">
+            <span v-if="rooms_list[(item-1)*3+column-1]">
+                <div class="card-header"> <h4 class="my-0 font-weight-normal">{{ rooms_list[(item-1)*3+column-1] }}</h4> </div>
+                <ul class="list-unstyled mt-3 mb-4 text-left pl-3">
+                  <li v-for="sensor, index in sensors_list[(item-1)*3+column-1]">
+                        {{ sensor.s_type }}: {{ sensor.data }} {{ sensor.meters }}
                         <span v-if="sensor.online" class="text-success small">online</span>
                         <span v-else class="text-muted small">offline <!--from {{sensor.date}}--></span>
-                    </h5>
+                  </li>
+                </ul>
+            </span>
+                <span v-if="(item-1)*3+column-1 == sensors_list.length">
+                    <div class="card-header"> <h4 class="my-0 font-weight-normal">Вент машина</h4> </div>
+                <br>
+                <div class="ml-3 mr-3 p-0 mt-0 mb-0">
+                    <table>
+                        <tr>
+                            <td>
+                                <table class="table-bordered border-primary">
+                                    <tr>
+                                        <td class="text-center" style="width: 100px"><small>Скорость</small></td>
+                                        <td>&nbsp</td>
+                                        <td class="text-center" style="width: 100px"><small>Нагрев</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td v-if="vent.speed > 3 " rowspan="2"
+                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else rowspan="2" class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td></td>
+                                        <td v-if="vent.heat > 4 " class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td v-if="vent.heat > 3 " class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                    </tr>
 
+                                    <tr>
+                                        <td v-if="vent.speed > 2 " rowspan=2
+                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else rowspan=2 class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td></td>
+                                        <td v-if="vent.heat > 2 " class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                    </tr>
+                                    <tr>
+
+                                        <td></td>
+                                        <td v-if="vent.heat > 1 " class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                    <tr>
+                                    <tr>
+                                        <td v-if="vent.speed > 1 " class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td></td>
+                                        <td v-if="vent.heat > 0 " class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+                                    <tr>
+
+
+                                </table>
+                            </td>
+                            <td class="pl-2 align-top">
+
+
+                                <h6>
+
+
+                                    Забор воздуха: {{ vent.t_from_out}} C
+                                    <br>
+                                    Возух из поменщения: {{vent.t_from_in}} C
+                                    <br>
+                                    <span v-if="vent.rotor"> Ротор включен </span>
+                                    <span v-else> Ротор выключен </span>
+                                    <br>
+
+                                    <span v-if="vent.heating"> Нагреватель включен </span>
+                                    <span v-else> Нагреватель выключен </span>
+                                    <br>
+
+                                </h6>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
+                <br>
+                </span>
+
             </div>
+
         </div>
-	<div class="row row-flex row-flex-wrap ">
-          <div class="col-sm mr-3 ml-3 shadow p-0 mb-5 rounded bg-light">
-              	<div class="card-header">
-            <h4 class="my-0 font-weight-normal">Вент машина</h4>
-		</div>
-	<br>
-        <div class="ml-3 mr-3 p-0 mt-0 mb-0">
-	  <table><tr><td>
-	  <table class="table-bordered border-primary">
-	    <tr>
-	      <td class="text-center" style="width: 100px"><small>Скорость</small></td>
-	      <td>&nbsp</td><td class="text-center" style="width: 100px"><small>Нагрев</small></td>
-	    </tr>
-	    <tr>
-<td v-if="vent.speed > 3 " rowspan="2"  class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
-              <td v-else  rowspan="2" class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-	      <td></td>
-               <td v-if="vent.heat > 4 "  class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-               <td v-else  class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-	    </tr>
-            <tr><td></td>
-               <td v-if="vent.heat > 3 "  class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-               <td v-else  class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-            </tr>
-	   
-	    <tr>
-	      <td v-if="vent.speed > 2 " rowspan = 2  class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
-              <td v-else  rowspan = 2 class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-	      <td></td>
-	       <td v-if="vent.heat > 2 "  class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-               <td v-else  class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-	    </tr>
-	    <tr>
-              
-	      <td></td>
-	       <td v-if="vent.heat > 1 "  class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-               <td v-else  class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-            <tr>
-	    <tr>
-              <td v-if="vent.speed > 1 "  class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
-      	      <td v-else  class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-	      <td></td>
-	       <td v-if="vent.heat > 0 "  class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-               <td v-else  class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-            <tr>
-            
-
-	  </table>
-              </td>
-	      <td class="pl-2 align-top">
-	 
-	
-               <h6>
-		    
-		    
-                    Забор воздуха: {{ vent.t_from_out}} C
-		    <br>
-		    Возух из поменщения: {{vent.t_from_in}} C
-                    <br>  
-		    <span v-if="vent.rotor"> Ротор включен </span>
-		    <span v-else> Ротор выключен </span>
-		    <br>
-		    
-                    <span v-if="vent.heating"> Нагреватель включен </span>
-                    <span v-else> Нагреватель выключен </span>
-                    <br>
-		    
-                    </h6>
-               </td></tr></table>
-                </div>
-
-	  </div>
-
-	</div>
     </div>
 
-    <div><br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> </div>
+
 </main>
 <!--script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script-->
 <script src="/static/js/vue.min.js"></script>

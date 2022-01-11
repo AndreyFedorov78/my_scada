@@ -25,7 +25,7 @@ new Vue({
                 tmp.online = (now.getTime()-tmp.date.getTime() < 150000)? 1 : 0
                 if (lastId != data[x].sensorId) {
                     lastId = data[x].sensorId
-                    this.rooms_list.push(this.listOfRooms[lastId])
+                    this.rooms_list.push(this.listOfRooms[lastId]?this.listOfRooms[lastId]:'неизвестный датчик '+lastId )
                     if (x != 0) this.sensors_list.push(tmp_arr)
                     tmp_arr = [tmp]
                 } else
