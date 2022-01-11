@@ -3,45 +3,56 @@ new Vue({
     data: {
         sensors_list: [],
         rooms_list: [],
-	vent: [],
-        listOfTypes : {'100': 'Температура', '200': 'CO2'},
-        listOfMeters : {'100': 'C', '200': 'ppt'},
-        listOfRooms : {'1' : 'Гостиная', '2' : 'Спальня'}
+        vent: [],
+        listOfTypes: {'100': 'Температура', '200': 'CO2'},
+        listOfMeters: {'100': 'C', '200': 'ppt'},
+        listOfRooms: {'1': 'Гостиная', '2': 'Спальня'}
+    },
+    methods: {
+        async load_last() {
+            fetch('/scada_api/allsensors/').then((response) => {
+                return response.json();
+            }).then((data) => {
+                this.sensors_list = []
+                this.rooms_list =[]
+                data.sort((a, b) => (a.sensorId > b.sensorId) ? 1 : ((b.sensorId > a.sensorId) ? -1 : 0))
+                let lastId = -1
+                let tmp_arr = []
+
+                for (x = 0; x < data.length; x++) {
+                    let tmp = {type: data[x].type, data: data[x].data, date: new Date(data[x].date.substring(0, 19))}
+                    var now = new Date()
+                    tmp.s_type = this.listOfTypes[data[x].type]
+                    tmp.meters = this.listOfMeters[data[x].type]
+                    tmp.online = (now.getTime() - tmp.date.getTime() < 150000) ? 1 : 0
+                    if (lastId != data[x].sensorId) {
+                        lastId = data[x].sensorId
+                        this.rooms_list.push(this.listOfRooms[lastId] ? this.listOfRooms[lastId] : 'неизвестный датчик ' + lastId)
+                        if (x != 0) this.sensors_list.push(tmp_arr)
+                        tmp_arr = [tmp]
+                    } else
+                        tmp_arr.push(tmp)
+                }
+
+                this.sensors_list.push(tmp_arr)
+
+
+            });
+
+            fetch('/scada_api/vent/').then((response) => {
+                return response.json();
+            }).then((data) => {
+                this.vent = data;
+            })
+
+
+        }
     },
     async created() {
-
-        fetch('/scada_api/allsensors/').then((response) => {
-            return response.json();
-        }).then((data) => {
-            data.sort((a, b) => (a.sensorId > b.sensorId) ? 1 : ((b.sensorId > a.sensorId) ? -1 : 0))
-            let lastId = -1
-            let tmp_arr = []
-
-            for (x = 0; x < data.length; x++) {
-                let tmp = {type: data[x].type, data: data[x].data, date: new Date(data[x].date.substring(0,19))}
-                var now = new  Date()
-                tmp.s_type = this.listOfTypes[data[x].type]
-                tmp.meters = this.listOfMeters[data[x].type]
-                tmp.online = (now.getTime()-tmp.date.getTime() < 150000)? 1 : 0
-                if (lastId != data[x].sensorId) {
-                    lastId = data[x].sensorId
-                    this.rooms_list.push(this.listOfRooms[lastId]?this.listOfRooms[lastId]:'неизвестный датчик '+lastId )
-                    if (x != 0) this.sensors_list.push(tmp_arr)
-                    tmp_arr = [tmp]
-                } else
-                    tmp_arr.push(tmp)
-            }
-
-            this.sensors_list.push(tmp_arr)
+        await this.load_last()
+        const createClock = setInterval(function (){this.load_last()}.bind(this), 60000);
 
 
-        });
-	fetch('/scada_api/vent/').then((response) => {
-            return response.json();
-        }).then((data) => {
-	    this.vent = data;
-	    
-	})
     }
 })
 

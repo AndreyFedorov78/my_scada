@@ -61,6 +61,5 @@ class AllSensors(APIView):
             sensor_id = sensor[0].sensorId
             dataType = sensor[0].type
             sensor = sensor.exclude(Q(sensorId=sensor_id) & Q(type=dataType))
-            print (dataType,' ',sensor_id)
-        serializer = SensorSerializer(all_sensors, many=True)
+            serializer = SensorSerializer(all_sensors, many=True)
         return Response(serializer.data)
