@@ -1,3 +1,22 @@
+
+
+const headers_post = {
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+    'X-CSRFToken': csrf_token
+}
+
+async function fetch_post(url, data) {
+    let response = await fetch(url, {
+        method: 'post',
+        headers: headers_post,
+        body: JSON.stringify(data)
+    });
+    return (response);
+}
+
+
+
 new Vue({
     el: '#app',
     data: {
@@ -9,6 +28,11 @@ new Vue({
         listOfRooms: {'1': 'Гостиная', '2': 'Спальня'}
     },
     methods: {
+        async ventManage(name, val){
+            let toSend={};
+            toSend[name]=val;
+            fetch_post('/scada_api/vent/', toSend).then(r  => this.load_last())
+        },
         async load_last() {
             fetch('/scada_api/allsensors/').then((response) => {
                 return response.json();
@@ -18,41 +42,32 @@ new Vue({
                 data.sort((a, b) => (a.sensorId > b.sensorId) ? 1 : ((b.sensorId > a.sensorId) ? -1 : 0))
                 let lastId = -1
                 let tmp_arr = []
-
-                for (x = 0; x < data.length; x++) {
+                for (let x = 0; x < data.length; x++) {
                     let tmp = {type: data[x].type, data: data[x].data, date: new Date(data[x].date.substring(0, 19))}
-                    var now = new Date()
+                    let now = new Date()
                     tmp.s_type = this.listOfTypes[data[x].type]
                     tmp.meters = this.listOfMeters[data[x].type]
                     tmp.online = (now.getTime() - tmp.date.getTime() < 150000) ? 1 : 0
-                    if (lastId != data[x].sensorId) {
+                    if (lastId !== data[x].sensorId) {
                         lastId = data[x].sensorId
                         this.rooms_list.push(this.listOfRooms[lastId] ? this.listOfRooms[lastId] : 'неизвестный датчик ' + lastId)
-                        if (x != 0) this.sensors_list.push(tmp_arr)
+                        if (x !== 0) this.sensors_list.push(tmp_arr)
                         tmp_arr = [tmp]
                     } else
                         tmp_arr.push(tmp)
                 }
-
                 this.sensors_list.push(tmp_arr)
-
-
             });
 
             fetch('/scada_api/vent/').then((response) => {
-                return response.json();
-            }).then((data) => {
+                return response.json()}).then((data) => {
                 this.vent = data;
-            })
-
-
+            });
         }
     },
     async created() {
         await this.load_last()
-        const createClock = setInterval(function (){this.load_last()}.bind(this), 60000);
-
-
+        setInterval(function (){this.load_last()}.bind(this), 20000);
     }
 })
 

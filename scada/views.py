@@ -7,16 +7,14 @@ from .models import Sensor
 from .serialalizers import SensorSerializer, SensorDetailSerializer
 from .blynk import Blynk
 
-# from django.shortcuts import render
-# Create your views here.
 
-
-class Index (View):
+class Index(View):
     @staticmethod
     def get(request):
         return render(request, 'scada/index.html')
 
-class Vent (APIView):
+
+class Vent(APIView):
     @staticmethod
     def get(request):
         result = Blynk()
@@ -26,15 +24,15 @@ class Vent (APIView):
     def post(request):
         result = Blynk()
         result.put_data(request.data)
-        return  Response(status=201)
+        return Response(status=201)
 
 
 class SensorView(APIView):
     @staticmethod
     def get(request):
         sensor = Sensor.objects.all()
-        serializer = SensorSerializer(sensor, many=True)
-        return Response(serializer.data)
+        sv_serializer = SensorSerializer(sensor, many=True)
+        return Response(sv_serializer.data)
 
     @staticmethod
     def post(request):
@@ -51,15 +49,16 @@ class SensorDetailView(APIView):
         serializer = SensorDetailSerializer(sensor)
         return Response(serializer.data)
 
+
 class AllSensors(APIView):
     @staticmethod
     def get(request):
-        all_sensors=[];
+        all_sensors = []
         sensor = Sensor.objects.all().order_by('-date')
-        while len(sensor)>0:
+        while len(sensor) > 0:
             all_sensors.append(sensor[0])
             sensor_id = sensor[0].sensorId
-            dataType = sensor[0].type
-            sensor = sensor.exclude(Q(sensorId=sensor_id) & Q(type=dataType))
-            serializer = SensorSerializer(all_sensors, many=True)
+            data_type = sensor[0].type
+            sensor = sensor.exclude(Q(sensorId=sensor_id) & Q(type=data_type))
+        serializer = SensorSerializer(all_sensors, many=True)
         return Response(serializer.data)
