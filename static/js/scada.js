@@ -85,7 +85,7 @@ new Vue({
 
                         for (let x = 0; x < data.length; x++) {
                             tmp = new Date(data[x].date.substring(0, 19))
-                            dat.labels.push(tmp.getHours())
+                            dat.labels.push(tmp.getHours()-tmp.getTimezoneOffset()/60)
                             dat.data.push(data[x].data)
 
                         }
