@@ -1,5 +1,3 @@
-
-
 const headers_post = {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -16,36 +14,42 @@ async function fetch_post(url, data) {
 }
 
 
-
 new Vue({
     el: '#app',
     data: {
         sensors_list: [],
         rooms_list: [],
         vent: [],
+        charts: [],
         listOfTypes: {'100': 'Температура', '200': 'CO2'},
         listOfMeters: {'100': 'C', '200': 'ppt'},
         listOfRooms: {'1': 'Гостиная', '2': 'Спальня'}
     },
     methods: {
-        async ventManage(name, val){
-            this.vent[name]=val;
-            let toSend={};
-            toSend[name]=val;
+        async ventManage(name, val) {
+            this.vent[name] = val;
+            let toSend = {};
+            toSend[name] = val;
             await fetch_post('/scada_api/vent/', toSend)
         },
         async load_last() {
-            fetch('/scada_api/allsensors/').then((response) => {
+            fetch('/scada_api/vent/').then((response) => {
+                return response.json()
+            }).then((data) => {
+                this.vent = data;
+            });
+            await fetch('/scada_api/allsensors/').then((response) => {
                 return response.json();
             }).then((data) => {
                 this.sensors_list = []
-                this.rooms_list =[]
+                this.rooms_list = []
                 data.sort((a, b) => (a.sensorId > b.sensorId) ? 1 : ((b.sensorId > a.sensorId) ? -1 : 0))
                 let lastId = -1
                 let tmp_arr = []
                 for (let x = 0; x < data.length; x++) {
                     let tmp = {type: data[x].type, data: data[x].data, date: new Date(data[x].date.substring(0, 19))}
                     let now = new Date()
+                    tmp.s_id = data[x].sensorId
                     tmp.s_type = this.listOfTypes[data[x].type]
                     tmp.meters = this.listOfMeters[data[x].type]
                     tmp.online = (now.getTime() - tmp.date.getTime() < 150000) ? 1 : 0
@@ -59,54 +63,75 @@ new Vue({
                 }
                 this.sensors_list.push(tmp_arr)
             });
+        },
+        async load_charts() {
+            tmp_arr = [];
+            for (let i = 0; i < this.rooms_list.length; i++) {
+                for (let j = 0; j < this.sensors_list[i].length; j++) {
+                    await fetch('scada_api/sensor_last_days/' + this.sensors_list[i][j].s_id + '/' + this.sensors_list[i][j].type + '/1').then((response) => {
+                        return response.json()
+                    }).then((data) => {
 
-            fetch('/scada_api/vent/').then((response) => {
-                return response.json()}).then((data) => {
-                this.vent = data;
-            });
+
+                        let dat = {
+                            id: 'chart_' + this.sensors_list[i][j].type + '_' + this.sensors_list[i][j].s_id,
+                            u_type:  this.sensors_list[i][j].s_type,
+                            labels: [],
+                            data: [],
+                        }
+
+
+
+
+                        for (let x = 0; x < data.length; x++) {
+                            tmp = new Date(data[x].date.substring(0, 19))
+                            dat.labels.push(tmp.getHours())
+                            dat.data.push(data[x].data)
+
+                        }
+                        tmp_arr.push(dat);
+                    });
+                }
+            }
+            for (let i = 0; i < tmp_arr.length; i++) {
+                const ctx = document.getElementById(tmp_arr[i].id).getContext('2d');
+                show_chart(ctx, tmp_arr[i])
+            }
+            return
         }
     },
     async created() {
-        await this.load_last()
-        setInterval(function (){this.load_last()}.bind(this), 20000);
+        await this.load_last();
+        await this.load_charts()
+        setInterval(function () {
+            this.load_last()
+        }.bind(this), 20000);
     }
 })
 
-/*
-
-const ctx = document.getElementById('myChart').getContext('2d');
-const myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-        datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 150, 2, 3],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
+function show_chart(ctx, input_dat) {
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: input_dat.labels,
+            datasets: [{
+                label: input_dat.u_type,
+                data: input_dat.data,
+                backgroundColor: "#AAFFAA",
+                borderColor:  "#0000FF",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
         }
-    }
-});
-*/
+    });
+}
+
+
+
+
