@@ -15,3 +15,10 @@ class SensorDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sensor
         exclude = ("id",)
+
+
+class SensorDataOnlySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Sensor
+        fields = ("date", "data")
