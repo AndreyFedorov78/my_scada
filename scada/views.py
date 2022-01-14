@@ -70,7 +70,7 @@ class SensorLastDays(APIView):
     @staticmethod
     def get(request, sensor_id, data_type, days):
         start_date = timezone.now()-datetime.timedelta(days=days)
-        sensor = Sensor.objects.all().order_by('-date').filter(sensorId=sensor_id, type=data_type, date__gt=start_date)
+        sensor = Sensor.objects.all().order_by('date').filter(sensorId=sensor_id, type=data_type, date__gt=start_date)
         sensor_new = []
         actual_date = timezone.now()-datetime.timedelta(days=days)
         dat = 0
