@@ -38,14 +38,20 @@ class SensorView(APIView):
         return Response(sv_serializer.data)
 
     @staticmethod
-    def post(request):
+    def post(request):  # получение данных от датчика и записб в бд
         sensor = SensorDetailSerializer(data=request.data)
         if sensor.is_valid():
-            sensor_new = sensor.save()
-            
-
+            sensor = sensor.save()
+            sensor = Sensor.objects.filter(sensorId=sensor.sensorId).filter(type=sensor.type).order_by('-date')[:3]
+            if len(sensor) == 3:
+                if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
+                    print('hello', sensor[1],' id', sensor[1].id)
+                    sensor[1].delete()
 
         return Response(status=201)
+
+
+
 
 
 class SensorDetailView(APIView):
