@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 db.sqlite3
+scada/migrations/*
+scada/migrations/
+scada/__pycache__/*
+scada/__pycache__/
+my_scada/__pycache__/
+my_scada/__pycache__/*
 
 # C extensions
 *.so
