@@ -13,6 +13,7 @@ from django.utils import timezone
 class Index(View):
     @staticmethod
     def get(request):
+        #Sensor.objects.all().delete()
         return render(request, 'scada/index.html')
 
 
@@ -40,7 +41,10 @@ class SensorView(APIView):
     def post(request):
         sensor = SensorDetailSerializer(data=request.data)
         if sensor.is_valid():
-            sensor.save()
+            sensor_new = sensor.save()
+            
+
+
         return Response(status=201)
 
 

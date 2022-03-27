@@ -21,9 +21,11 @@ new Vue({
         rooms_list: [],
         vent: [],
         charts: [],
-        listOfTypes: {'100': 'Температура', '200': 'CO2'},
-        listOfMeters: {'100': 'C', '200': 'ppt'},
-        listOfRooms: {'1': 'Гостиная', '2': 'Спальня'}
+        listOfTypes: {'100': 'Температура', '200': 'CO2', '300': 'Влажность'},
+        listOfMeters: {'100': 'C', '200': 'ppt', '300': '%'},
+        listOfRooms: {'1': 'Гостиная', '1953992341': 'Спальня'},
+        listOfDivider: {'100': 10, '200': 1, '300': 10}
+
     },
     methods: {
         async ventManage(name, val) {
@@ -50,6 +52,7 @@ new Vue({
                     let tmp = {type: data[x].type, data: data[x].data, date: new Date(data[x].date.substring(0, 19))}
                     let now = new Date()
                     tmp.s_id = data[x].sensorId
+                    tmp.data = tmp.data / (this.listOfDivider[data[x].type])
                     tmp.s_type = this.listOfTypes[data[x].type]
                     tmp.meters = this.listOfMeters[data[x].type]
                     tmp.online = (now.getTime() - tmp.date.getTime() < 150000) ? 1 : 0
@@ -72,7 +75,6 @@ new Vue({
                         return response.json()
                     }).then((data) => {
 
-
                         let dat = {
                             id: 'chart_' + this.sensors_list[i][j].type + '_' + this.sensors_list[i][j].s_id,
                             u_type:  this.sensors_list[i][j].s_type,
@@ -80,13 +82,10 @@ new Vue({
                             data: [],
                         }
 
-
-
-
                         for (let x = 0; x < data.length; x++) {
                             tmp = new Date(data[x].date.substring(0, 19))
                             dat.labels.push(tmp.getHours()-tmp.getTimezoneOffset()/60)
-                            dat.data.push(data[x].data)
+                            dat.data.push(data[x].data/(this.listOfDivider[this.sensors_list[i][j].type]))
 
                         }
                         tmp_arr.push(dat);
@@ -131,7 +130,3 @@ function show_chart(ctx, input_dat) {
         }
     });
 }
-
-
-
-
