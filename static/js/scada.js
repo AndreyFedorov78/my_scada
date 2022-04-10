@@ -84,6 +84,8 @@ new Vue({
 
                         for (let x = 0; x < data.length; x++) {
                             tmp = new Date(data[x].date.substring(0, 19))
+                            time=tmp.getHours()-tmp.getTimezoneOffset()/60
+                            time -= (time < 24)? 0 : 24
                             dat.labels.push(tmp.getHours()-tmp.getTimezoneOffset()/60)
                             dat.data.push(data[x].data/(this.listOfDivider[this.sensors_list[i][j].type]))
 

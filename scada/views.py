@@ -97,7 +97,6 @@ class SensorLastDays(APIView):
                 actual_date = i.date
                 counter = 0
                 dat = 0
-
             dat += i.data
             counter += 1
         sensor_new.append({'date': actual_date, 'data': dat / counter if counter != 0 else 0})
