@@ -1,5 +1,5 @@
 import datetime
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.views.generic import View
@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class Index(View):
+class Index(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
         # Sensor.objects.all().delete()
