@@ -19,6 +19,7 @@ new Vue({
     data: {
         sensors_list: [],
         rooms_list: [],
+        show_list: [false,false,false,false,false,false,false,false],
         vent: [],
         charts: [],
         listOfTypes: {'100': 'Температура', '200': 'CO2', '300': 'Влажность'},
@@ -28,6 +29,11 @@ new Vue({
 
     },
     methods: {
+        show_swich(num) {
+            this.show_list[num] = !this.show_list[num];
+            this.load_last();
+        },
+
         async ventManage(name, val) {
             this.vent[name] = val;
             let toSend = {};
@@ -45,6 +51,8 @@ new Vue({
             }).then((data) => {
                 this.sensors_list = []
                 this.rooms_list = []
+                // this.show_list = []
+
                 data.sort((a, b) => (a.sensorId > b.sensorId) ? 1 : ((b.sensorId > a.sensorId) ? -1 : 0))
                 let lastId = -1
                 let tmp_arr = []
@@ -59,6 +67,7 @@ new Vue({
                     if (lastId !== data[x].sensorId) {
                         lastId = data[x].sensorId
                         this.rooms_list.push(this.listOfRooms[lastId] ? this.listOfRooms[lastId] : 'неизвестный датчик ' + lastId)
+                        //this.show_list.push(false)
                         if (x !== 0) this.sensors_list.push(tmp_arr)
                         tmp_arr = [tmp]
                     } else
