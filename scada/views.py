@@ -33,7 +33,7 @@ class Vent(APIView):
 
 
 ##class SensorView(LoginRequiredMixin,APIView):
-class SensorView(APIView):
+class SensorView(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
         sensor = Sensor.objects.all()[:200]
@@ -55,11 +55,11 @@ class SensorView(APIView):
 
 
     @staticmethod
-    def delete(request):  # получение данных от датчика и записб в бд
+    def delete(request):
         Sensor.objects.all().delete()
         return Response(status=201)
 
-class SensorDetailView(APIView):
+class SensorDetailView(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request, pk):
         sensor = Sensor.objects.get(id=pk)
@@ -67,7 +67,7 @@ class SensorDetailView(APIView):
         return Response(serializer.data)
 
 
-class AllSensors(APIView):
+class AllSensors(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
         all_sensors = []
