@@ -125,3 +125,7 @@ media/
 >>>>>>> cc402f7094ab4305833059bcdf882bc94afce1b8
 **/migrations/__init__.py
 *.pyc
+my_scada/__pycache__/__init__.cpython-37.pyc
+my_scada/__pycache__/__init__.cpython-37.pyc
+my_scada/__pycache__/settings.cpython-37.pyc
+my_scada/__pycache__/wsgi.cpython-37.pyc
