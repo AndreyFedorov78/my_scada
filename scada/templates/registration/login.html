@@ -1,76 +1,66 @@
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Andrey Fedorov">
-    <title>My scada</title>
-    <!-- Bootstrap core CSS -->
-    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
-    <!-- Favicons -->
-    <meta name="theme-color" content="#7952b3">
-    <!--style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-        }
+{% extends "rest_framework/base.html" %}
+{% load rest_framework %}
 
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
-        }
-    </style-->
-    <!-- Custom styles for this template -->
-    <link href="/static/css/scada.css" rel="stylesheet">
-</head>
-<body  class="bg-info" style="text-align: center">
+{% block body %}
+<body class="container">
+  <div class="container-fluid" style="margin-top: 30px">
+    <div class="row-fluid">
+      <div class="well" style="width: 320px; margin-left: auto; margin-right: auto">
+        <div class="row-fluid">
+          <div style="text-align: center">
+            {% block branding %}<h3 style="margin: 0 0px 20px;"><img src="/static/img/logo-2.png"  style="width: 200px"> <br> HOME SCADA</h3>{% endblock %}
+          </div>
+        </div><!-- /row fluid -->
 
+        <div class="row-fluid">
+          <div>
+            <form action="{% url 'rest_framework:login' %}" role="form" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ next }}" />
 
+              <div id="div_id_username" class="clearfix control-group {% if form.username.errors %}error{% endif %}">
+                <div class="form-group">
+                  <label for="id_username">{{ form.username.label }}:</label>
+                  <input type="text" name="username" maxlength="100"
+                      autocapitalize="off"
+                      autocorrect="off" class="form-control textinput textInput"
+                      id="id_username" required autofocus
+                      {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
+                  {% if form.username.errors %}
+                    <p class="text-error">
+                      {{ form.username.errors|striptags }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
 
+              <div id="div_id_password" class="clearfix control-group {% if form.password.errors %}error{% endif %}">
+                <div class="form-group">
+                  <label for="id_password">{{ form.password.label }}:</label>
+                  <input type="password" name="password" maxlength="100" autocapitalize="off" autocorrect="off" class="form-control textinput textInput" id="id_password" required>
+                  {% if form.password.errors %}
+                    <p class="text-error">
+                      {{ form.password.errors|striptags }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
 
-{% if form.errors %}
-  <p>Your username and password didn't match. Please try again.</p>
-{% endif %}
+              {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                  <div class="well well-small text-error" style="border: none">{{ error }}</div>
+                {% endfor %}
+              {% endif %}
 
-{% if next %}
-  {% if user.is_authenticated %}
-    <p>Your account doesn't have access to this page. To proceed,
-    please login with an account that has access.</p>
-  {% else %}
-    <p></p>
-  {% endif %}
-{% endif %}
-<!--div class="card-deck center text-center" style="width: 500px; align-self: center"-->
-            <div class="card mb-4 box-shadow p-4 m-4" style="width: 400px; align-self: center" >
-
-<form method="post" action="{% url 'login' %}" style="text-align: center">
-{% csrf_token %}
-<table style="text-align: center; width: 100%">
-
-<tr>
-  <td style="text-align: right">{{ form.username.label_tag }}</td>
-  <td style="text-align: left">{{ form.username }}</td>
-</tr>
-
-<tr>
-  <td style="text-align: right">{{ form.password.label_tag }}</td>
-  <td style="text-align: left">{{ form.password }}</td>
-</tr>
-</table>
-<br>
-<input type="submit" value="Войти" />
-<input type="hidden" name="next" value="{{ next }}" />
-</form>
-
-{# Assumes you setup the password_reset view in your URLconf #}
-                <br>
-                <h5>Можете использовать пару: <br>login: <i>tester</i><br>пароль: <i>tester</i></h5>
-</div>
-
+              <div class="form-actions-no-box">
+                <input type="submit" name="submit" value="ВОЙТИ" class="btn btn-primary form-control" id="submit-id-submit">
+              </div>
+              <div style="width: 100%; text-align: center" ><small>l: tester, p: tester</small></div>
+            </form>
+          </div>
+        </div><!-- /.row-fluid -->
+      </div><!--/.well-->
+    </div><!-- /.row-fluid -->
+  </div><!-- /.container-fluid -->
 </body>
-</html>
+{% endblock %}

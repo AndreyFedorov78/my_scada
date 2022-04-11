@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Andrey Fedorov">
+    <title>My scada</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
+    <!-- Favicons -->
+    <meta name="theme-color" content="#7952b3">
+    <!--style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style-->
+    <!-- Custom styles for this template -->
+    <link href="/static/css/scada.css" rel="stylesheet">
+</head>
+<body  class="bg-info" style="text-align: center">
+
+
+
+
+{% if form.errors %}
+  <p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+{% if next %}
+  {% if user.is_authenticated %}
+    <p>Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+  {% else %}
+    <p></p>
+  {% endif %}
+{% endif %}
+<!--div class="card-deck center text-center" style="width: 500px; align-self: center"-->
+            <div class="card mb-4 box-shadow p-4 m-4" style="width: 400px; align-self: center" >
+
+<form method="post" action="{% url 'login' %}" style="text-align: center">
+{% csrf_token %}
+<table style="text-align: center; width: 100%">
+
+<tr>
+  <td style="text-align: right">{{ form.username.label_tag }}</td>
+  <td style="text-align: left">{{ form.username }}</td>
+</tr>
+
+<tr>
+  <td style="text-align: right">{{ form.password.label_tag }}</td>
+  <td style="text-align: left">{{ form.password }}</td>
+</tr>
+</table>
+<br>
+<input type="submit" value="Войти" />
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+{# Assumes you setup the password_reset view in your URLconf #}
+                <br>
+                <h5>Можете использовать пару: <br>login: <i>tester</i><br>пароль: <i>tester</i></h5>
+</div>
+
+</body>
+</html>
