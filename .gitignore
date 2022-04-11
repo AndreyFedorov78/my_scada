@@ -124,3 +124,4 @@ media/
 **/migrations/
 >>>>>>> cc402f7094ab4305833059bcdf882bc94afce1b8
 **/migrations/__init__.py
+*.pyc
