@@ -1,155 +1,66 @@
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Andrey Fedorov">
-    <title>My scada</title>
-    <!-- Bootstrap core CSS -->
-    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
-    <!-- Favicons -->
-    <meta name="theme-color" content="#7952b3">
-    <link href="/static/css/scada.css" rel="stylesheet">
-</head>
-<body class="" style="background: antiquewhite">
-{% verbatim %}
-<main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 ">
-    <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <img src="/static/img/logo-2.png" style="width: 150px">
-        <span class="text-primary h1 ml-5">HOME SCADA</span>
-    </div>
+{% extends "rest_framework/base.html" %}
+{% load rest_framework %}
 
-   <!-- Блок отображения данных-->
-    <div class="" id="app"> <!-- оласть приложениея vue -->
-        <div class="row card-deck mb-3 text-center">  <!--строка-->
+{% block body %}
+<body class="container">
+  <div class="container-fluid" style="margin-top: 30px">
+    <div class="row-fluid">
+      <div class="well" style="width: 320px; margin-left: auto; margin-right: auto">
+        <div class="row-fluid">
+          <div style="text-align: center">
+            {% block branding %}<h3 style="margin: 0 0px 20px;"><img src="/static/img/logo-2.png"  style="width: 200px"> <br> HOME SCADA</h3>{% endblock %}
+          </div>
+        </div><!-- /row fluid -->
 
-            <div class="card ml-4 mb-4 box-shadow" style="width: 350px" v-for="item in parseInt(sensors_list.length)">
-                   <!--Заголовок окна -->
-                   <div class="card-header"> <h4 class="my-0 font-weight-normal">{{ rooms_list[item-1]}}</h4> </div>
-                   <!--Содержимое -->
-                   <ul class="list-unstyled mt-3 mb-4 text-left pl-3">
-                     <li v-for="sensor, index in sensors_list[item-1]">
-                        {{ sensor.s_type }}: <b>{{ sensor.data }} {{ sensor.meters }}</b>
-                        <span v-if="sensor.online" class="text-success small">online</span>
-                        <span v-else class="text-muted small">offline <!--from {{sensor.date}}--></span>
-                     </li>
-                     <!--Графики-->
-                     <li style="text-align: center">
-                        <a href="##" v-on:click="show_swich(item-1)" class="small"> статистика </a>
-                        </li>
-                     <li v-for="sensor, index in sensors_list[item-1]">
-                         <canvas v-show="show_list[item-1]"
-                                 :id="'chart_'+sensor.type+'_'+sensor.s_id"> </canvas>
-                     </li>
-                   </ul>
-            </div>
-            <!-- Блок вентиляции -->
-            <div class="card ml-4 mb-4 box-shadow" style="width: 350px">
-                <div class="card-header"> <h4 class="my-0 font-weight-normal">Вент машина</h4> </div>
-                <br>
-                <div class="ml-3 mr-3 p-0 mt-0 mb-0 w-30 text-center">
-                                <table class="table-bordered" style="border: none; display: inline-block;">
-                                    <tr>
-                                        <!--td rowspan="7" style="border:none;"></td-->
-                                        <td class="text-center" style="width: 100px">
-                                            <img v-if="vent.speed == 1" src="/static/img/fan-gif-off.gif" width="30">
-                                            <img v-else src="/static/img/fan-gif.gif" width="30"></td>
-                                        <td rowspan="7" style="border: none; width: 10px"></td>
-                                        <td class="text-center" style="width: 100px">
-                                            <img v-if="vent.heat == 0" src="/static/img/heat-off.png" width="30">
-                                            <img v-else src="/static/img/heat.png" width="30"></td>
-                                        </td>
-                                        <td rowspan="7" style="border: none; width: 10px"></td>
-                                        <td rowspan="2" style="width: 60px;">
-                                            <img v-if="vent.heating == 0" src="/static/img/heating-off.png" width="50">
-                                            <img v-else src="/static/img/heating.png" width="50">
-                                        </td>
-                                        <!--td rowspan="7" style="border: none;"></td-->
-                                    </tr>
-                                    <tr>
-                                        <td v-if="vent.speed > 3 " rowspan="2"
-                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else rowspan="2" v-on:click="ventManage('speed',4)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+        <div class="row-fluid">
+          <div>
+            <form action="{% url 'rest_framework:login' %}" role="form" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ next }}" />
 
-                                        <td v-if="vent.heat > 4 " v-on:click="ventManage('heat',5)"
-                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('heat',5)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+              <div id="div_id_username" class="clearfix control-group {% if form.username.errors %}error{% endif %}">
+                <div class="form-group">
+                  <label for="id_username">{{ form.username.label }}:</label>
+                  <input type="text" name="username" maxlength="100"
+                      autocapitalize="off"
+                      autocorrect="off" class="form-control textinput textInput"
+                      id="id_username" required autofocus
+                      {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
+                  {% if form.username.errors %}
+                    <p class="text-error">
+                      {{ form.username.errors|striptags }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
 
-                                    </tr>
-                                    <tr>
+              <div id="div_id_password" class="clearfix control-group {% if form.password.errors %}error{% endif %}">
+                <div class="form-group">
+                  <label for="id_password">{{ form.password.label }}:</label>
+                  <input type="password" name="password" maxlength="100" autocapitalize="off" autocorrect="off" class="form-control textinput textInput" id="id_password" required>
+                  {% if form.password.errors %}
+                    <p class="text-error">
+                      {{ form.password.errors|striptags }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
 
-                                        <td v-if="vent.heat > 3 " v-on:click="ventManage('heat',4)"
-                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('heat',4)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+              {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                  <div class="well well-small text-error" style="border: none">{{ error }}</div>
+                {% endfor %}
+              {% endif %}
 
-                                        <td><span v-if="vent.heating != 0" class="text-danger"> <b>ON</b> </span>
-                                            <span v-else class="text-secondary"> <b> OFF </b> </span></td>
-                                    </tr>
-                                    <tr>
-                                        <td v-if="vent.speed > 2 " v-on:click="ventManage('speed',3)" rowspan=2
-                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('speed',3)" rowspan=2
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-
-                                        <td v-if="vent.heat > 2 " v-on:click="ventManage('heat',3)"
-                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('heat',3)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-
-                                        <td rowspan="2"><img src="/static/img/rotor.jpg" width="50"></td>
-                                    </tr>
-                                    <tr>
-
-                                        <td v-if="vent.heat > 1 " v-on:click="ventManage('heat',2)"
-                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('heat',2)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-
-                                    </tr>
-                                    <tr>
-                                        <td v-if="vent.speed > 1 " v-on:click="ventManage('speed',2)"
-                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('speed',2)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-
-                                        <td v-if="vent.heat > 0 " v-on:click="ventManage('heat',1)"
-                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
-                                        <td v-else v-on:click="ventManage('heat',1)"
-                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
-
-                                        <td rowspan="2">
-                                        <span v-if="vent.rotor !=0" class="text-primary">  <b> ON </b> </span>
-                                        <span v-else class="text-secondary"> <b> OFF </b> </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td v-if="vent.speed == 1 " v-on:click="ventManage('speed',1)"
-                                            class="text-danger"> <b>off</b>
-                                        </td>
-                                        <td v-else v-on:click="ventManage('speed',1)"> <b>off</b> </td>
-                                        <td v-if="vent.heat == 0 " v-on:click="ventManage('heat',0)"
-                                            class="text-danger"> <b>off</b>
-                                        </td>
-                                        <td v-else v-on:click="ventManage('heat',0)"> <b>off</b> </td>
-                                    </tr>
-
-                                </table>
-                  </div>
-            </div>
-
-        </div>
-    </div>
-</main>
-{% endverbatim %}
-<script src="/static/js/Chart.min.js"></script>
-<script> const csrf_token = "{{csrf_token}}"</script>
-<script src="/static/js/vue.min.js"></script>
-<script src="/static/js/scada.js"></script>
-
-
+              <div class="form-actions-no-box">
+                <input type="submit" name="submit" value="ВОЙТИ" class="btn btn-primary form-control" id="submit-id-submit">
+              </div>
+              <div style="width: 100%; text-align: center" ><small>l: tester, p: tester</small></div>
+            </form>
+          </div>
+        </div><!-- /.row-fluid -->
+      </div><!--/.well-->
+    </div><!-- /.row-fluid -->
+  </div><!-- /.container-fluid -->
 </body>
-</html>
+{% endblock %}
