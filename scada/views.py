@@ -33,7 +33,7 @@ class Vent(APIView):
 
 
 ##class SensorView(LoginRequiredMixin,APIView):
-class SensorView(LoginRequiredMixin, APIView):
+class SensorView(APIView):
     @staticmethod
     def get(request):
         sensor = Sensor.objects.all()[:200]
