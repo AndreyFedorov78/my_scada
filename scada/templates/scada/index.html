@@ -24,7 +24,7 @@
     <div class="" id="app"> <!-- оласть приложениея vue -->
         <div class="row card-deck mb-3 text-center">  <!--строка-->
 
-            <div class="card ml-4 mb-4 box-shadow" style="width: 350px" v-for="item in parseInt(sensors_list.length)">
+            <div class="card  mb-4 box-shadow" style="width: 350px" v-for="item in parseInt(sensors_list.length)">
                    <!--Заголовок окна -->
                    <div class="card-header"> <h4 class="my-0 font-weight-normal">{{ rooms_list[item-1]}}</h4> </div>
                    <!--Содержимое -->
@@ -45,7 +45,7 @@
                    </ul>
             </div>
             <!-- Блок вентиляции -->
-            <div class="card ml-4 mb-4 box-shadow" style="width: 350px">
+            <div class="card  mb-4 box-shadow" style="width: 350px">
                 <div class="card-header"> <h4 class="my-0 font-weight-normal">Вент машина</h4> </div>
                 <br>
                 <div class="ml-3 mr-3 p-0 mt-0 mb-0 w-30 text-center">
