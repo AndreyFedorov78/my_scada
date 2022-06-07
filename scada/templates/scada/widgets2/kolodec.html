@@ -1,0 +1,34 @@
+{% verbatim %}
+<br>
+<center>
+ <div style="width: 350px;vertical-align: bottom; position: relative;">
+<img src="/static/img/kolodec.png" style="width: 350px; position: relative;">
+     <!-- максимальная высота 400, минимальная 50-->
+
+   <img v-if="sensors_list[item-1][0].online" :height="sensors_list[item-1][0].data/100*350+50" src="/static/img/water.gif" style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
+<img v-else :height="sensors_list[item-1][0].data/100*350+50" src="/static/img/water-stop.gif" style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
+     <div  style="background: #000000; opacity: .30; position: absolute; bottom: 70px; left: 110px; width: 130px; height: 100px;"> </div>
+     <h1  style="width: 190px; position: absolute; bottom: 100px; left: 78px;">
+       {{ sensors_list[item-1][0].data }}{{ sensors_list[item-1][0].meters }}
+       </h1>
+     <div style="width: 190px; position: absolute; bottom: 70px; left: 78px;">
+     <span v-if="sensors_list[item-1][0].online"  > <h3>online</h3></span>
+                        <span v-else class="text-danger "> <h3>offline</h3> </span>
+     </div>
+ </div>
+</center>
+
+<div>
+
+<ul class="list-unstyled mt-3 mb-4 text-left pl-3">
+                     <!--Графики-->
+                     <li style="text-align: center">
+                        <a href="##" v-on:click="show_swich(item-1)" class="small"> статистика </a>
+                        </li>
+                     <li v-for="sensor, index in sensors_list[item-1]">
+                         <canvas v-show="show_list[item-1]"
+                                 :id="'chart_'+sensor.type.id+'_'+sensor.s_id.id"> </canvas>
+                     </li>
+                   </ul>
+    </div>
+{% endverbatim %}

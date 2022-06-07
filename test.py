@@ -1,0 +1,26 @@
+D433_TX_Pin = 4  # вход с приемником 433mz
+D433_SPEED = 2400
+MICROS = 1000000
+FRAME_TIME = MICROS / D433_SPEED
+HALF_FRAME = FRAME_TIME / 2
+START_PULSE = FRAME_TIME * 2
+START_MIN = START_PULSE * 3 / 4
+START_MAX = START_PULSE * 5 / 4
+FRAME_MIN = FRAME_TIME * 3 / 4
+FRAME_MAX = FRAME_TIME * 5 / 4
+HALF_FRAME_MIN = HALF_FRAME * 3 / 4
+HALF_FRAME_MAX = HALF_FRAME * 5 / 4
+
+print("Frame=", FRAME_TIME)
+print("FrameMAX=", FRAME_MAX)
+print("FrameMIN=", FRAME_MIN)
+print()
+print("Frame/2=", HALF_FRAME)
+print("FrameMAX/2=", HALF_FRAME_MAX)
+print("FrameMIN/2=", HALF_FRAME_MIN)
+print()
+
+print("Start=", START_PULSE)
+print("StartMAX=", START_MAX)
+print("StartMIN=", START_MIN)
+print()

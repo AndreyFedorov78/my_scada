@@ -1,0 +1,102 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="30">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Andrey Fedorov">
+    <title>My scada</title>
+    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#7952b3">
+    <link rel="stylesheet" href={% static '/css/scada_ipad.css' %}>
+</head>
+<body>
+
+
+
+<!--body class="" style="" background="/static/img/bg.png"-->
+
+<main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 ">
+    <!--div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <img src="/static/img/logo-2.png" style="width: 150px">
+    </div-->
+
+    <div class="row card-deck mb-3 text-center">
+        <div class="card">
+
+            <div class="card-header">Погода</div>
+
+            <div class="weather">
+                 <span> {{ temperature }} С</span>
+                 <span> o</span>
+            </div>
+
+            <div class="weatherEx">
+                <span> Давление: {{ pressure }}мм</span> <br>
+                <span> Влажность: {{ humidity }} %</span>
+            </div>
+
+
+            <br>
+
+            <div class="clock">
+
+                <div>{{ hour }}</div><div>:</div><div>{{ minute }}</div>
+
+            </div>
+
+
+
+
+        </div>
+
+        <div class="card" >
+
+            <div class="card-header">Колодец</div>
+
+
+            <br>
+
+            <center>
+                <div style="width: 350px;vertical-align: bottom; position: relative;">
+
+                    <img src="/static/img/kolodec.png" class="kolodec">
+
+                    {% if online %}
+                        <img src="/static/img/water.gif"
+                             style="height: {{ level }}px;  width: 190px;  position: absolute; bottom: 0; left: 78px;">
+                    {% else %}
+                        <img src="/static/img/water-stop.gif"
+                             style="height: {{ level }}px;  width: 190px;  position: absolute; bottom: 0; left: 78px;">
+                    {% endif %}
+                    <div class="water-back"></div>
+                    <span class="water-show {% if alarm %}alarm{% endif %}">
+                        {{ water }}%
+                    </span>
+                    <div style="width: 190px; position: absolute; bottom: 70px; left: 78px;">
+                        {% if online %}
+                            <span style="color: #04fc43;"> <h3>online</h3></span>
+                        {% else %}
+                            <span  > <h3 class="alarm">offline</h3> </span>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </center>
+
+        </div>
+
+    </div>
+
+    </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>

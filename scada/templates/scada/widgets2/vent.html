@@ -1,0 +1,94 @@
+
+            {% verbatim %}
+
+                                <table class="table-bordered" style="border: none; display: inline-block;">
+                                    <tr>
+                                        <!--td rowspan="7" style="border:none;"></td-->
+                                        <td class="text-center" style="width: 100px">
+                                            <img v-if="vent.speed == 1" src="/static/img/fan-gif-off.gif" width="30">
+                                            <img v-else src="/static/img/fan-gif.gif" width="30"></td>
+                                        <td rowspan="7" style="border: none; width: 10px"></td>
+                                        <td class="text-center" style="width: 100px">
+                                            <img v-if="vent.heat == 0" src="/static/img/heat-off.png" width="30">
+                                            <img v-else src="/static/img/heat.png" width="30"></td>
+                                        </td>
+                                        <td rowspan="7" style="border: none; width: 10px"></td>
+                                        <td rowspan="2" style="width: 60px;">
+                                            <img v-if="vent.heating == 0" src="/static/img/heating-off.png" width="50">
+                                            <img v-else src="/static/img/heating.png" width="50">
+                                        </td>
+                                        <!--td rowspan="7" style="border: none;"></td-->
+                                    </tr>
+                                    <tr>
+                                        <td v-if="vent.speed > 3 " rowspan="2"
+                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else rowspan="2" v-on:click="ventManage('speed',4)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                        <td v-if="vent.heat > 4 " v-on:click="ventManage('heat',5)"
+                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('heat',5)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                    </tr>
+                                    <tr>
+
+                                        <td v-if="vent.heat > 3 " v-on:click="ventManage('heat',4)"
+                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('heat',4)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                        <td><span v-if="vent.heating != 0" class="text-danger"> <b>ON</b> </span>
+                                            <span v-else class="text-secondary"> <b> OFF </b> </span></td>
+                                    </tr>
+                                    <tr>
+                                        <td v-if="vent.speed > 2 " v-on:click="ventManage('speed',3)" rowspan=2
+                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('speed',3)" rowspan=2
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                        <td v-if="vent.heat > 2 " v-on:click="ventManage('heat',3)"
+                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('heat',3)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                        <td rowspan="2"><img src="/static/img/rotor.jpg" width="50"></td>
+                                    </tr>
+                                    <tr>
+
+                                        <td v-if="vent.heat > 1 " v-on:click="ventManage('heat',2)"
+                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('heat',2)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                    </tr>
+                                    <tr>
+                                        <td v-if="vent.speed > 1 " v-on:click="ventManage('speed',2)"
+                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('speed',2)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                        <td v-if="vent.heat > 0 " v-on:click="ventManage('heat',1)"
+                                            class="bg-danger pl-3 pr-3 pb-3 pt-3"></td>
+                                        <td v-else v-on:click="ventManage('heat',1)"
+                                            class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
+
+                                        <td rowspan="2">
+                                        <span v-if="vent.rotor !=0" class="text-primary">  <b> ON </b> </span>
+                                        <span v-else class="text-secondary"> <b> OFF </b> </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td v-if="vent.speed == 1 " v-on:click="ventManage('speed',1)"
+                                            class="text-danger"> <b>off</b>
+                                        </td>
+                                        <td v-else v-on:click="ventManage('speed',1)"> <b>off</b> </td>
+                                        <td v-if="vent.heat == 0 " v-on:click="ventManage('heat',0)"
+                                            class="text-danger"> <b>off</b>
+                                        </td>
+                                        <td v-else v-on:click="ventManage('heat',0)"> <b>off</b> </td>
+                                    </tr>
+
+                                </table>
+
+{% endverbatim %}

@@ -1,0 +1,18 @@
+{% verbatim %}
+
+<ul class="list-unstyled mt-3 mb-4 text-left pl-3">
+                     <li v-for="sensor, index in sensors_list[item-1]">
+                        {{ sensor.s_type }}: <b>{{ sensor.data }} {{ sensor.meters }}</b>
+                        <span v-if="sensor.online" class="text-success small">online</span>
+                        <span v-else class="text-muted small">offline <!--from {{sensor.date}}--></span>
+                     </li>
+                     <!--Графики-->
+                     <li style="text-align: center">
+                        <a href="##" v-on:click="show_swich(item-1)" class="small"> статистика </a>
+                        </li>
+                     <li v-for="sensor, index in sensors_list[item-1]">
+                         <canvas v-show="show_list[item-1]"
+                                 :id="'chart_'+sensor.type.id+'_'+sensor.s_id.id"> </canvas>
+                     </li>
+                   </ul>
+{% endverbatim %}

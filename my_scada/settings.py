@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-e-jbp#k622f!r3_o93-u(v!q@@!k@sy12=0blyr4#5mx=$e8f3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.44', '192.168.2.200', '127.0.0.1', 'home.fedorov.team']
+ALLOWED_HOSTS = ['*', '192.168.1.44', '192.168.2.200', '127.0.0.1', 'scada.fedorov.team']
 
 
 # Application definition

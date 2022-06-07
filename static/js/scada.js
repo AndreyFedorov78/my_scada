@@ -22,10 +22,10 @@ new Vue({
         show_list: [false,false,false,false,false,false,false,false], // скрытие / открытие детальных графиков позже надо будет заполнять автоматически
         vent: [],  // данные венустанвки
         charts: [], // графики
-        listOfTypes: {'100': 'Температура', '200': 'CO2', '300': 'Влажность', '400' : 'Давление'}, // Расшифровка данных датчиков, позже их надо будет читать из базы
-        listOfMeters: {'100': 'C', '200': 'ppt', '300': '%', '400' : 'мм'},
-        listOfRooms: {'1953992342': 'Гостиная', '1953992341': 'Спальня', '1953992321' : 'Улица'},
-        listOfDivider: {'100': 10, '200': 1, '300': 10, '400': 1 }   // делители (в БД все данные целочисленные
+        //listOfTypes: {'100': 'Температура', '200': 'CO2', '300': 'Влажность', '400' : 'Давление', '402': 'Вода'}, // Расшифровка данных датчиков, позже их надо будет читать из базы
+        //listOfMeters: {'100': 'C', '200': 'ppt', '300': '%', '400' : 'мм', '402': 'м'},
+        //listOfRooms: {'1953992342': 'Гостиная', '1953992341': 'Спальня', '1953992321' : 'Улица'},
+        //listOfDivider: {'100': 10, '200': 1, '300': 10, '400': 1, '402': 1 }   // делители (в БД все данные целочисленные
 
     },
     methods: {
@@ -46,28 +46,27 @@ new Vue({
                 return response.json()
             }).then((data) => {
                 this.vent = data;
-            });
+                             });
             await fetch('/scada_api/allsensors/').then((response) => {
                 return response.json();
             }).then((data) => {
                 this.sensors_list = []
                 this.rooms_list = []
-
-                data.sort((a, b) => (a.sensorId > b.sensorId) ? 1 : ((b.sensorId > a.sensorId) ? -1 : ((a.type > b.type) ? 1:((b.type > a.type) ? -1 :0))))
+                data.sort((a, b) => (a.sensorId.id > b.sensorId.id) ? 1 : ((b.sensorId.id > a.sensorId.id) ? -1 : ((a.type.id > b.type.id) ? 1:((b.type.id > a.type.id) ? -1 :0))))
                 let lastId = -1
                 let tmp_arr = []
                 for (let x = 0; x < data.length; x++) {
                     let tmp = {type: data[x].type, data: data[x].data, date: new Date(data[x].date.substring(0, 19))}
                     let now = new Date()
                     tmp.s_id = data[x].sensorId
-                    tmp.data = tmp.data / (this.listOfDivider[data[x].type])
-                    tmp.s_type = this.listOfTypes[data[x].type]
-                    tmp.meters = this.listOfMeters[data[x].type]
-                    tmp.online = (now.getTime() - tmp.date.getTime() < 150000) ? 1 : 0
-                    if (lastId !== data[x].sensorId) {
+                    tmp.data = tmp.data/data[x].type.divider
+                    tmp.s_type = data[x].type.title
+                    tmp.meters = data[x].type.units
+                    tmp.online = (now.getTime() - tmp.date.getTime() < 400000) ? 1 : 0
+                    if (lastId.id !== data[x].sensorId.id) {
                         lastId = data[x].sensorId
-                        this.rooms_list.push(this.listOfRooms[lastId] ? this.listOfRooms[lastId] : 'неизвестный датчик ' + lastId)
-                        //this.show_list.push(false)
+                        this.rooms_list.push(lastId.title)
+                        this.show_list.push(false)
                         if (x !== 0) this.sensors_list.push(tmp_arr)
                         tmp_arr = [tmp]
                     } else
@@ -80,32 +79,30 @@ new Vue({
             tmp_arr = [];
             for (let i = 0; i < this.rooms_list.length; i++) {
                 for (let j = 0; j < this.sensors_list[i].length; j++) {
-                    await fetch('scada_api/sensor_last_days/' + this.sensors_list[i][j].s_id + '/' + this.sensors_list[i][j].type + '/1').then((response) => {
+                    await fetch('scada_api/sensor_last_days/' + this.sensors_list[i][j].s_id.id + '/' + this.sensors_list[i][j].type.id + '/1').then((response) => {
                         return response.json()
                     }).then((data) => {
-
                         let dat = {
-                            id: 'chart_' + this.sensors_list[i][j].type + '_' + this.sensors_list[i][j].s_id,
+                            id: 'chart_' + this.sensors_list[i][j].type.id + '_' + this.sensors_list[i][j].s_id.id,
                             u_type:  this.sensors_list[i][j].s_type,
                             labels: [],
                             data: [],
                         }
-
                         for (let x = 0; x < data.length; x++) {
                             tmp = new Date(data[x].date.substring(0, 19))
                             time=tmp.getHours()-tmp.getTimezoneOffset()/60
                             time -= (time < 24)? 0 : 24
                             dat.labels.push(time)
-                            dat.data.push(data[x].data/(this.listOfDivider[this.sensors_list[i][j].type]))
-
+                            dat.data.push(data[x].data/(this.sensors_list[i][j].type.divider))
                         }
                         tmp_arr.push(dat);
                     });
                 }
             }
             for (let i = 0; i < tmp_arr.length; i++) {
+                if (document.getElementById(tmp_arr[i].id) != null) {
                 const ctx = document.getElementById(tmp_arr[i].id).getContext('2d');
-                show_chart(ctx, tmp_arr[i])
+                show_chart(ctx, tmp_arr[i]) }
             }
             return
         }

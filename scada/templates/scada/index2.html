@@ -15,9 +15,9 @@
     <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
     <!-- Favicons -->
     <meta name="theme-color" content="#7952b3">
-    <link href="/static/css/scada.css" rel="stylesheet">
+    <link href="/static/css/scada2.css" rel="stylesheet">
 </head>
-<body class="" style=""  background="/static/img/bg.png">
+<body class="" style="" background="/static/img/bg2.png">
 {% block start %}
 {% endblock %}
 {% verbatim %}
@@ -29,9 +29,9 @@
    <!-- Блок отображения данных-->
     <div class="" id="app"> <!-- оласть приложениея vue -->
         <div class="row card-deck mb-3 text-center">
-            <div class="card mr-3 ml-3   mb-4 box-shadow" style="width: 350px" v-for="item in parseInt(sensors_list.length)">
+            <div class="card"  v-for="item in parseInt(sensors_list.length)">
                    <!--заголовок окна-->
-                   <div class="card-header"> <h4 class="my-0 font-weight-normal">{{ rooms_list[item-1]}}</h4> </div>
+                   <div class="card-header"> <h4 class="my-0 font-weight-normal">{{rooms_list[item-1]}}</h4> </div>
                    <!--Содержимое -->
                    {% endverbatim %} <!-- предаем рендеринг обратно в Django-->
                        {% for widget in widgets%} <!-- идем по всем доступным виджетам-->
