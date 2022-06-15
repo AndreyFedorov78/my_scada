@@ -1,14 +1,26 @@
-{% extends "rest_framework/base.html" %}
-{% load rest_framework %}
+<!doctype html>
+<html lang="ru">
 
-{% block body %}
-<body class="container">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Andrey Fedorov">
+    <title>My scada</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
+    <!-- Favicons -->
+    <meta name="theme-color" content="#7952b3">
+    <link href="/static/css/scada.css" rel="stylesheet">
+</head>
+<body class="" style="">
   <div class="container-fluid" style="margin-top: 30px">
     <div class="row-fluid">
       <div class="well" style="width: 320px; margin-left: auto; margin-right: auto">
         <div class="row-fluid">
           <div style="text-align: center">
-            {% block branding %}<h3 style="margin: 0 0px 20px;"><img src="/static/img/logo-2.png"  style="width: 200px"> <br> HOME SCADA</h3>{% endblock %}
+            {% block branding %}<img src="/static/img/logo-2.png"  style="width: 200px"> {% endblock %}
           </div>
         </div><!-- /row fluid -->
 
@@ -20,7 +32,7 @@
 
               <div id="div_id_username" class="clearfix control-group {% if form.username.errors %}error{% endif %}">
                 <div class="form-group">
-                  <label for="id_username">{{ form.username.label }}:</label>
+                    <label for="id_username"><b>{{ form.username.label }}:</b></label>
                   <input type="text" name="username" maxlength="100"
                       autocapitalize="off"
                       autocorrect="off" class="form-control textinput textInput"
@@ -36,7 +48,7 @@
 
               <div id="div_id_password" class="clearfix control-group {% if form.password.errors %}error{% endif %}">
                 <div class="form-group">
-                  <label for="id_password">{{ form.password.label }}:</label>
+                    <label for="id_password"><b>{{ form.password.label }}:</b></label>
                   <input type="password" name="password" maxlength="100" autocapitalize="off" autocorrect="off" class="form-control textinput textInput" id="id_password" required>
                   {% if form.password.errors %}
                     <p class="text-error">
@@ -63,4 +75,4 @@
     </div><!-- /.row-fluid -->
   </div><!-- /.container-fluid -->
 </body>
-{% endblock %}
+</html>

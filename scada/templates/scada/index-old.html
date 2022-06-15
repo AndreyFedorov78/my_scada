@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+
+
+
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Andrey Fedorov">
+    <title>My scada</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
+    <!-- Favicons -->
+    <meta name="theme-color" content="#7952b3">
+    <link href="/static/css/scada.css" rel="stylesheet">
+</head>
+<body class="" style=""  >
+{% block start %}
+{% endblock %}
+{% verbatim %}
+<main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 ">
+    <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <img src="/static/img/logo-2.png" style="width: 150px">
+    </div>
+
+   <!-- Блок отображения данных-->
+    <div class="app"  id="app"> <!-- оласть приложениея vue -->
+        <div class="card-deck row"  >
+            <div class="card"   v-for="item in parseInt(sensors_list.length)">
+
+                   <!--заголовок окна-->
+                   <div class="card-header"> <h4 class="my-0 font-weight-normal">
+                       <div class="close"> </div>
+                       <div class="control_buttons">
+                           <a href="##">x</a><div></div>
+                           <a href="##"><</a><div></div>
+                           <a href="##">></a>
+                       </div>
+                       <div v-if="sensors_list[item-1][0].online" class="online">online</div>
+                       <div v-else class="online text-danger alarm">offline {{ sensors_list[item-1][0].date }}</div>
+
+                       {{ rooms_list[item-1]}} </h4>
+                   </div>
+                   <!--Содержимое -->
+                   {% endverbatim %} <!-- предаем рендеринг обратно в Django-->
+                       {% for widget in widgets%} <!-- идем по всем доступным виджетам-->
+                         {% verbatim %}
+                           <!-- силами vue показываем тот виджет на который ссылается текущий элемент при рендеренге силами vue -->
+                            <span v-if="sensors_list[item-1][0].s_id.widget.id == {% endverbatim %} {{ widget.id }} {% verbatim %} ">
+                                {% endverbatim %} {% include widget.filename %} <!-- вставляем виджет-->
+                            </span>
+                         {% endfor %}
+                     {% verbatim %}
+            </div>
+
+        </div>
+    </div>
+</main>
+
+{% endverbatim %}
+<script src="/static/js/Chart.min.js"></script>
+<script> const csrf_token = "{{csrf_token}}"</script>
+<script src="/static/js/vue.min.js"></script>
+<script src="/static/js/scada.js"></script>
+
+<br><br><br>
+</body>
+</html>
+
+

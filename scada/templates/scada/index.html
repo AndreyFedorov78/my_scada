@@ -2,9 +2,6 @@
 <html lang="ru">
 
 
-
-
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,44 +13,92 @@
     <!-- Favicons -->
     <meta name="theme-color" content="#7952b3">
     <link href="/static/css/scada.css" rel="stylesheet">
+    <link href="/static/css/clock2.css" rel="stylesheet">
 </head>
-<body class="" style=""  background="/static/img/bg.png">
-{% block start %}
-{% endblock %}
-{% verbatim %}
-<main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 ">
-    <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <img src="/static/img/logo-2.png" style="width: 150px">
-    </div>
+<body class="" style="">
 
-   <!-- Блок отображения данных-->
-    <div class="" id="app"> <!-- оласть приложениея vue -->
-        <div class="row card-deck mb-3 text-center">
-            <div class="card mr-3 ml-3   mb-4 box-shadow" style="width: 350px" v-for="item in parseInt(sensors_list.length)">
-                   <!--заголовок окна-->
-                   <div class="card-header"> <h4 class="my-0 font-weight-normal">{{ rooms_list[item-1]}}</h4> </div>
-                   <!--Содержимое -->
-                   {% endverbatim %} <!-- предаем рендеринг обратно в Django-->
-                       {% for widget in widgets%} <!-- идем по всем доступным виджетам-->
-                         {% verbatim %}
-                           <!-- силами vue показываем тот виджет на который ссылается текущий элемент при рендеренге силами vue -->
-                            <span v-if="sensors_list[item-1][0].s_id.widget.id == {% endverbatim %} {{ widget.id }} {% verbatim %} ">
-                                {% endverbatim %} {% include widget.filename %} <!-- вставляем виджет-->
-                            </span>
-                         {% endfor %}
-                     {% verbatim %}
+{% verbatim %}
+<main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 " id="app">
+    <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+         style="display: flex">
+        <img src="/static/img/logo-2.png" style="width: 150px">
+
+        <div>
+            <button v-on:click="exit()" class="menu_item">выход</button>
+
+        <div class="dropdown">
+            <button class="dropbtn">виджеты</button>
+            <div class="dropdown-content">
+
+                            <div v-for="i in widgets_new">
+                <a href="##" v-on:click="add_widget(i.id)">{{i.title}} </a>
+            </div>
+            </div>
+        </div>
             </div>
 
+
+    </div>
+
+    <!-- Блок отображения данных-->
+    <div class="app"> <!-- оласть приложениея vue -->
+
+
+        <div class="card-deck row">
+
+            <!-- Окна с виджетами -->
+            <div class="card" v-for="item in widgets_list">
+                <!--заголовок окна-->
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">
+                        <div class="close"></div>
+                        <div class="control_buttons">
+                            <a href="##" v-on:click="delete_widget(item.id)">x</a>
+                            <div></div>
+                            <a href="##" v-on:click="move_widget(item.id, -1)"> <</a>
+                            <div></div>
+                            <a href="##" v-on:click="move_widget(item.id, 1)">></a>
+                        </div>
+
+                        <div v-if="item.online" class="online">online</div>
+                        <div v-else class="online text-danger alarm">offline {{ item.date }}</div>
+
+                        {{item.title}}
+                    </h4>
+                </div>
+
+                <!--Содержимое -->
+
+                {% endverbatim %} <!-- предаем рендеринг обратно в Django-->
+                {% for widget in widgets %} <!-- идем по всем доступным виджетам-->
+                    {% verbatim %}
+                    <!-- силами vue показываем тот виджет на который ссылается текущий элемент при рендеренге силами vue -->
+
+                    <span v-if="item.sensor.widget.id == {%endverbatim %} {{ widget.id }} {% verbatim %} ">
+
+                                {% endverbatim %} {% include widget.filename %} <!-- вставляем виджет-->
+                            </span>
+                {% endfor %}
+                {% verbatim %}
+
+            </div>
+
+
         </div>
+
+
     </div>
 </main>
+
 {% endverbatim %}
 <script src="/static/js/Chart.min.js"></script>
 <script> const csrf_token = "{{csrf_token}}"</script>
 <script src="/static/js/vue.min.js"></script>
 <script src="/static/js/scada.js"></script>
-
-
+<div class="sensor_add">
+    <div v-for="i in widgets_new" v-on:click="add_widget(i.id)"><a href="##">{{ i.title }}</a></div>
+</div>
+<br><br><br>
 </body>
 </html>
 

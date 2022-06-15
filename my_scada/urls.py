@@ -15,14 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path , include
-from scada.views import Index, Index2, OldIpad, Clock
+from scada.views import Index, OldIpad, Clock
 
 #from rest_framework import routers
 #import scada
 
 urlpatterns = [
     path("", Index.as_view()),
-    path("2", Index2.as_view()),
     path("ipad", OldIpad.as_view()),
     path("clock", Clock.as_view()),
     path('admin/', admin.site.urls),

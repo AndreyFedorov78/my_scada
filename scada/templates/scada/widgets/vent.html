@@ -1,7 +1,7 @@
 
             {% verbatim %}
 
-                                <table class="table-bordered" style="border: none; display: inline-block;">
+                                <table class="table-bordered " style="border: none; display: inline-block;">
                                     <tr>
                                         <!--td rowspan="7" style="border:none;"></td-->
                                         <td class="text-center" style="width: 100px">
@@ -21,7 +21,7 @@
                                     </tr>
                                     <tr>
                                         <td v-if="vent.speed > 3 " rowspan="2"
-                                            class="bg-primary pl-3 pr-3 pb-3 pt-3"></td>
+                                            class="vent-tab bg-primary pl-3 pr-3 pb-3 pt-3"></td>
                                         <td v-else rowspan="2" v-on:click="ventManage('speed',4)"
                                             class="bg-secondary pl-3 pr-3 pb-3 pt-3"></td>
 
