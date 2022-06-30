@@ -1,17 +1,25 @@
-import datetime, time
+import datetime
 import hashlib
+import time
+import pytz
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.views.generic import View
 from django.db.models import Q
 from django.shortcuts import render
-from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets
-from .serialalizers import SensorSerializer, SensorDetailSerializer, SensorDataOnlySerializer, tmpSerializer
-from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
-from .blynk import Blynk
 from django.utils import timezone
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import View
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .blynk import Blynk
+from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets
+from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
+from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
+
+
+from . import mqtt
+
+
+mqtt.client.loop_start()
 
 
 def utc_to_local(utc_dt):
@@ -21,7 +29,7 @@ def utc_to_local(utc_dt):
 class Index(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
-        widgets = Widget.objects.all();
+        widgets = Widget.objects.all()
         return render(request, 'scada/index.html', {'widgets': widgets})
 
 
@@ -29,9 +37,6 @@ class Clock(View):
     @staticmethod
     def get(request):
         return render(request, 'scada/clock.html')
-
-
-
 
 
 class Vent(APIView):
@@ -49,7 +54,7 @@ class Vent(APIView):
         return Response(status=300)
 
 
-##class SensorView(LoginRequiredMixin,APIView):
+# class SensorView(LoginRequiredMixin,APIView):
 class SensorView(APIView):
     @staticmethod
     def get(request):
@@ -130,7 +135,7 @@ class tmpView(APIView):
     @staticmethod
     def post(request):
         # удаляем страрые данные
-        tmp.objects.filter(date__lt=datetime.datetime.now() - datetime.timedelta(seconds=20)).delete()
+        tmp.objects.filter(date__lt=datetime.datetime.now(pytz.timezone('Europe/Moscow')) - datetime.timedelta(seconds=20)).delete()
         # начинаем обработку
         data = tmpSerializer(data=request.data)
         if data.is_valid():
@@ -161,6 +166,7 @@ class tmpView(APIView):
                                     data[3] = int(data[3])
                                     newRecord.data = data[3]
                                     newRecord.save()
+                                    # удаляем записи в течение 15 минут после предпоследней
                                     sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
                                         type=newRecord.type).order_by('-date')[:3]
                                     if len(sensor) == 3:
@@ -204,16 +210,22 @@ class UserWidgets(LoginRequiredMixin, APIView):
                 i['data'] = SensorSerializer(all_sensors, many=True).data
                 i['data'].sort(key=lambda x: x['type']['sort'])
                 if len(all_sensors) > 0:
-                    now = time.mktime(datetime.datetime.now().timetuple())
+                    now = time.mktime(datetime.datetime.now(pytz.timezone('Europe/Moscow')).timetuple())
                     dat = time.mktime(utc_to_local(all_sensors[0].date).timetuple())
-                    if (now - dat) > (120 * 60):
+                    if (now - dat) > 600:
                         i['online'] = False
                     if (now - dat) > (24 * 60 * 60):
                         i['date'] = f"{all_sensors[0].date.day}/{all_sensors[0].date.month}/{all_sensors[0].date.year}"
                     else:
-                        i['date'] = f"{all_sensors[0].date.hour}:{all_sensors[0].date.minute}"
+                        i['date'] = f"{utc_to_local(all_sensors[0].date).hour}:{all_sensors[0].date.minute}"
             return Response(serializer.data)
         else:  # двигаем виджет
+            title = request.data.get('title')
+            if title is not None:
+                object1 = MyWidgets.objects.get(pk=id)
+                object1.title = title
+                object1.save()
+                return Response(status=201)
             step = request.data.get('step')
             if step is None:
                 return Response(status=201)
@@ -276,22 +288,36 @@ class GetWidgetsList(LoginRequiredMixin, APIView):
 class OldIpad(View):
     @staticmethod
     def get(request):
+
+       # mqtt.client = mqtt.connect_mqtt()
+       # mqtt.subscribe(mqtt.client)
+       # mqtt.client.loop_start()
+
+
         alarm_level = 35
         kolodez = SensorList.objects.filter(title='Колодец')[0]
         all_data = Sensor.objects.filter(sensorId=kolodez)[0]
         water = all_data.data
         delta = datetime.datetime.today().timestamp() - all_data.date.timestamp()
+
+
+        pool = SensorList.objects.filter(title='Бассеин')[0]
+        all_data = Sensor.objects.filter(sensorId=pool)[0]
+        pool = all_data.data/10
+
+
         out_sensor = SensorList.objects.filter(title='Улица дача')[0]
         all_data = Sensor.objects.filter(sensorId=out_sensor)
         temperature = (all_data.filter(type__title="Температура")[0].data) / 10
         pressure = all_data.filter(type__title="Давление")[0].data
         humidity = all_data.filter(type__title="Влажность")[0].data / 10
-        hour = datetime.datetime.now().hour
-        minute = datetime.datetime.now().minute
+        hour = datetime.datetime.now(pytz.timezone('Europe/Moscow')).hour
+        minute = datetime.datetime.now(pytz.timezone('Europe/Moscow')).minute
 
         online = (delta < 600)
         data = {
             'alarm': water < alarm_level,
+            'pool': pool,
             'hour': f"{hour:02}",
             'minute': f"{minute:02}",
             'level': int(water / 100 * 350 + 50),
@@ -302,6 +328,15 @@ class OldIpad(View):
             'humidity': humidity
         }
         return render(request, 'scada/ipad.html', data)
+
+
+class Connect(LoginRequiredMixin, APIView):
+    @staticmethod
+    def get(request):
+        answer=mqtt.client.is_connected()
+        # mqtt.client.enable_logger()
+        # subscribe=mqtt.client.
+        return Response({'connect':answer})
 
 
 """

@@ -13,7 +13,7 @@
     <!-- Favicons -->
     <meta name="theme-color" content="#7952b3">
     <link href="/static/css/scada.css" rel="stylesheet">
-    <link href="/static/css/clock2.css" rel="stylesheet">
+ 
 </head>
 <body class="" style="">
 
@@ -47,7 +47,7 @@
         <div class="card-deck row">
 
             <!-- Окна с виджетами -->
-            <div class="card" v-for="item in widgets_list">
+            <div v-on:dblclick="details(item.id)" class="card" v-for="item in widgets_list">
                 <!--заголовок окна-->
                 <div class="card-header">
                     <h4 class="my-0 font-weight-normal">
@@ -63,7 +63,8 @@
                         <div v-if="item.online" class="online">online</div>
                         <div v-else class="online text-danger alarm">offline {{ item.date }}</div>
 
-                        {{item.title}}
+                         <input v-on:focusout="title_edit(item.id)"  v-on:keyup.enter="title_edit(item.id)"  v-on:keyup.esc="load_last()" v-model='item.title'/>
+
                     </h4>
                 </div>
 

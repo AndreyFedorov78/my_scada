@@ -128,12 +128,36 @@ body {
 }
 
 
+
+.card-header input{
+    width: 100%;
+    color: #00cc03;
+    font-size: 1em;
+    font-weight: 600;
+    margin-bottom: 0.5em;
+    background: rgba( 0,0,0,0);
+    display: block;
+    border: none;
+    margin:0 auto;
+    padding:0 auto;
+    text-align: center;
+    outline:none;
+}
+
+.card-header input:focus {
+
+     border: none;
+    background: rgba( 0,0,0,0);
+  }
+
+
+
 .card-header{
     width: 100%;
     color: #00cc03;
     font-size: 3em;
     font-weight: 600;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.1em;
     display: flex;
     justify-content: center; /* выравнивание по горизонтали */
     align-items: center; /* выравнивание по вертикали */
@@ -229,6 +253,7 @@ body {
 .weather {
     align-items: top;
     margin-top: 0px;
+    width: 20em;
 
 }
 
@@ -282,3 +307,56 @@ body {
 .border-bottom { border-bottom: 1px solid #e5e5e5; }
 
 .box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }
+
+
+.pool_common {
+  display: flex;
+  justify-content: center; /* выравнивание по горизонтали */
+  align-items: center; /* выравнивание по вертикали */
+
+}
+.pool_img {
+    opacity: .7;
+    align-items: top;
+    margin-top: 20px;
+    width: 20em;
+
+}
+
+
+
+
+
+.pool {
+    top: 4em;
+    left: 0px;
+
+
+
+
+
+
+
+    position: absolute;
+    align-items: top;
+    margin-top: 0px;
+    width: 100%;
+
+}
+
+
+
+.pool span {
+    color: #007bff;
+}
+.pool span:nth-child(1) {
+    font-size: 4em;
+    font-weight: 600;
+}
+
+.pool span:nth-child(2) {
+    font-size: 2em;
+    font-weight: 600;
+    top: -10;
+    position: absolute;
+}

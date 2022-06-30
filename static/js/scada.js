@@ -13,7 +13,6 @@ async function fetch_post(url, data) {  // функция post запросов
     return (response);
 }
 
-
 async function fetch_delete(url) {  // функция post запросов
     let response = await fetch(url, {
         method: 'delete',
@@ -32,6 +31,15 @@ async function fetch_put(url) {  // функция post запросов
     return (response);
 }
 
+function search_by_id(id, data){
+    for (i=0; i < data.length; i++){
+        if (data[i].id == id) return data[i]
+    }
+    return null
+
+}
+
+
 new Vue({
     el: '#app',
     data: {
@@ -46,9 +54,16 @@ new Vue({
         async exit(){
             await fetch('/api/logout/')
             window.location.href = "/"
-            //router.push("/")
-            /*/accounts/login/?next=/*/
+        },
 
+        title_edit(id) {
+            fetch_post('/scada_api/mywidgets/'+id+'/', {'title':search_by_id(id, this.widgets_list).title})
+
+        },
+
+        details(id) {
+           // fetch_post('/scada_api/mywidgets/'+id+'/', {'title':search_by_id(id, this.widgets_list).title})
+          console.log(id, search_by_id(id, this.widgets_list).title)
 
         },
 
