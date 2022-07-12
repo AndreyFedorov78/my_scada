@@ -4,7 +4,7 @@ import time
 import datetime
 broker = 'fedorov.team'
 port = 1883
-topic = "#"
+topic = "my_scada2/#"
 
 
 #broker = 'localhost'

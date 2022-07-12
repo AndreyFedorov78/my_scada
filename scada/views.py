@@ -14,17 +14,19 @@ from .blynk import Blynk
 from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets
 from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
 from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
+from new_app import mqtt
 
 
-from . import mqtt
-
-
-mqtt.client.loop_start()
 
 
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
+
+class ButtonTest(LoginRequiredMixin, View):
+    @staticmethod
+    def get(request):
+                return render(request, 'scada/bt.html')
 
 class Index(LoginRequiredMixin, View):
     @staticmethod
@@ -327,13 +329,13 @@ class OldIpad(View):
             'pressure': pressure,
             'humidity': humidity
         }
-        return render(request, 'scada/ipad.html', data)
+        return render(request, 'scada/ipad2.html', data)
 
 
 class Connect(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
-        answer=mqtt.client.is_connected()
+        answer= mqtt.client.is_connected()
         # mqtt.client.enable_logger()
         # subscribe=mqtt.client.
         return Response({'connect':answer})

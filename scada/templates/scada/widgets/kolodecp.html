@@ -1,0 +1,25 @@
+{% verbatim %}
+
+<div v-if="'object' == typeof item.data" style="width: 350px; vertical-align: bottom; position: relative;">
+    <img src="/static/img/kolodec.png" class="kolodec">
+    <!-- максимальная высота 400, минимальная 50-->
+    <img v-if="item.online" :height="(4.2 - item.data[0].data/100)/3.7*350+50"  src="/static/img/water.gif"
+         style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
+    <img v-else :height="(4.2 - item.data[0].data/100)/3.7*350+50" src="/static/img/water-stop.gif"
+         style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
+    <div class="water-back"></div>
+    <span class="water-show">
+       {{ (420 - (item.data[0].data))/100 }}
+       </span>
+    <div style="width: 190px; position: absolute; bottom: 70px; left: 78px;">
+
+        <span v-if="item.online" style="color: #04fc43;"> <h3>online</h3></span>
+        <span v-else> <h3 class="alarm">offline</h3> </span>
+    </div>
+</div>
+
+<div>
+<br>
+
+    {% endverbatim %}
+

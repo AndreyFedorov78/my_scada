@@ -1,5 +1,5 @@
 from paho.mqtt import client as mqtt_client
-from .models import tmp, SensorList, DataTypes, Sensor
+from scada.models import tmp, SensorList, DataTypes, Sensor
 import random
 import time
 import datetime
@@ -79,12 +79,9 @@ def subscribe(client: mqtt_client):
       #  except:
       #      pass
 
-    # print("сообщение обработано")
-
     client.subscribe(topic)
     client.on_message = on_message
 
-print('\n\nMQTT\n\n')
 client = connect_mqtt()
 subscribe(client)
 
