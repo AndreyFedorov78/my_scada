@@ -68,6 +68,23 @@ class Sensor(models.Model):
     def __str__(self):
         return f"{self.sensorId}, {self.type}:{self.data} от  {self.date:%X (%d-%m-%y)}"
 
+class SensorArhive (models.Model):
+    id = models.AutoField(db_column='id', primary_key=True)
+    sensorId = models.ForeignKey(SensorList, on_delete=models.CASCADE, default=0)
+    type = models.ForeignKey(DataTypes, on_delete=models.DO_NOTHING,   blank=True, null=True, default=None)
+    data = models.IntegerField('данные', blank=True, null=True, default=0)
+    date = models.DateTimeField('Создано', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Архив'
+        verbose_name_plural = 'Архив'
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.sensorId}, {self.type}:{self.data} от  {self.date:%X (%d-%m-%y)}"
+
+
+
 
 class MyWidgets(models.Model):
     id = models.AutoField(primary_key=True)

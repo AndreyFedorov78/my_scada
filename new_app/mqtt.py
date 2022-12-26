@@ -1,5 +1,5 @@
 from paho.mqtt import client as mqtt_client
-from scada.models import tmp, SensorList, DataTypes, Sensor
+from scada.models import tmp, SensorList, DataTypes, Sensor, SensorArhive
 import random
 import time
 import datetime
@@ -21,10 +21,8 @@ client_id = f'T-L_scada-{random.randint(1, 1000)}'
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc != 0:
-            pass
             print("Failed to connect, return code %d\n", rc)
         else:
-            pass
             print("Connected to MQTT Broker!")
 
     # Set Connecting Client ID
@@ -37,53 +35,64 @@ def connect_mqtt():
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-       # try:
-            for i in msg.payload:
-                if not (ord("0") <= i <= ord("9")):
-                    return
-            data = msg.topic.split('/')
-            data.append(msg.payload.decode())  ##!!!!
-            if len(data) < 4:
-                return
-            if not data[1].isdigit():
-                return
-            if not data[3].isdigit():
-                return
+        try:
+            msg_body = msg.payload.decode()
+        except:
+            return
+        data = msg.topic.split('/')
+        data.append(msg.payload.decode())  ##!!!!
+        if len(data) < 4:
+            return
+        if not data[1].isdigit():
+            return
+        if not data[3].lstrip('-').isdigit():
+            return
 
-            if not SensorList.objects.filter(id=data[1]).exists():
-                # если датчик не найден, создаем его.
-                sensor = SensorList()
-                sensor.id = data[1]
-                sensor.save()
-            sensor = SensorList.objects.get(id=data[1])
-            if not sensor.active:
-                return
-            if not DataTypes.objects.filter(subtitle=data[2]).exists():
-                datatype = DataTypes()
-                datatype.subtitle = data[2]
-                datatype.save()
-            datatype = DataTypes.objects.get(subtitle=data[2])
-            newRecord = Sensor()
-            newRecord.sensorId = sensor
-            newRecord.type = datatype
-            data[3] = int(data[3])
-            newRecord.data = data[3]
-            newRecord.save()
-            # удаляем записи в течение 15 минут после предпоследней
-            for x in range(0, 10):  # данные могут поступать одновременно, надо качественно подчистить
-                sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
-                    type=newRecord.type).order_by('-date')[:3]
-                if len(sensor) == 3:
-                    if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
-                        sensor[1].delete()
-      #  except:
-      #      pass
+        if not SensorList.objects.filter(id=data[1]).exists():
+            # если датчик не найден, создаем его.
+            sensor = SensorList()
+            sensor.id = data[1]
+            sensor.save()
+        sensor = SensorList.objects.get(id=data[1])
+        if not sensor.active:
+            return
+        if not DataTypes.objects.filter(subtitle=data[2]).exists():
+            datatype = DataTypes()
+            datatype.subtitle = data[2]
+            datatype.save()
+        datatype = DataTypes.objects.get(subtitle=data[2])
+        newRecord = Sensor()
+        arhive = SensorArhive()
+        arhive.sensorId = newRecord.sensorId = sensor
+        arhive.type = newRecord.type = datatype
+        data[3] = int(data[3])
+        arhive.data =  newRecord.data = data[3]
+        arhive.save()
+        newRecord.save()
+        sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
+                type=newRecord.type).exclude(pk=newRecord.pk)[1:]
+
+        for item in sensor:
+            item.delete()
+
+
+        for x in range(0, 10):  # данные могут поступать одновременно, надо качественно подчистить
+            sensor = SensorArhive.objects.filter(sensorId=newRecord.sensorId).filter(
+                type=newRecord.type).order_by('-date')[:3]
+            if len(sensor) == 3:
+                if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
+                    sensor[1].delete()
+
+    #  except:
+    #      pass
 
     client.subscribe(topic)
     client.on_message = on_message
 
+
 client = connect_mqtt()
 subscribe(client)
+# client.loop_forever()
 
 """
 def publish(client):

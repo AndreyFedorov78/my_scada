@@ -12,6 +12,7 @@ urlpatterns = [
     path("vent/", Vent.as_view()),
     path("sensor_detail/<int:pk>/", SensorDetailView.as_view()),
     path("sensor_last_days/<int:sensor_id>/<int:data_type>/<int:days>", SensorLastDays.as_view()),
+
     path("tmp/", tmpView.as_view()),
     path("connect/", Connect.as_view()),
 

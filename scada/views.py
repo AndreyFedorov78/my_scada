@@ -11,7 +11,7 @@ from django.views.generic import View
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .blynk import Blynk
-from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets
+from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets, SensorArhive
 from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
 from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
 from new_app import mqtt
@@ -107,7 +107,7 @@ class SensorLastDays(APIView):
     @staticmethod
     def get(request, sensor_id, data_type, days):
         start_date = timezone.now() - datetime.timedelta(days=days)
-        sensor = Sensor.objects.all().order_by('date').filter(sensorId=sensor_id, type=data_type, date__gt=start_date)
+        sensor = SensorArhive.objects.all().order_by('date').filter(sensorId=sensor_id, type=data_type, date__gt=start_date)
         sensor_new = []
         actual_date = timezone.now() - datetime.timedelta(days=days)
         dat = 0
