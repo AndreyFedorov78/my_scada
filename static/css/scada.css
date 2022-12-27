@@ -3,6 +3,7 @@
 }
 html {
   font-size: 14px;
+   height: 100%;
 }
 @media (min-width: 768px) {
   html {
@@ -10,13 +11,19 @@ html {
   }
 }
 
+
+
+
+
 body {
      background-image: url(/static/img/bg.png);
      justify-content: center; /* выравнивание по горизонтали */
+      height: 100%;
 }
 
 .app {
      justify-content: center; /* выравнивание по горизонтали */
+      height: 100%;
 }
 
 
@@ -360,3 +367,113 @@ body {
     top: -10;
     position: absolute;
 }
+
+
+/* модальное окно с делталями */
+
+.details_container {
+
+    /*background: green;*/
+    background-color: white;
+    position: absolute;
+    top: 0px;
+    left: 10px;
+    right: 10px;
+    bottom: 0px;
+    display: flex;
+        justify-content: center; /* выравнивание по горизонтали */
+    align-items: center; /* выравнивание по вертикали */
+    display:block;
+    opacity: 1;
+
+}
+
+.details {
+    background-color: white;
+    width: 200px;
+    margin: auto;
+
+
+
+}
+
+.details a {
+
+    color: #FF0000;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    border: solid 3px #ff0000;
+    width: 20px;
+    height:20px;
+    display:flex;
+    font-weight: 10000;
+    border-radius: 50%;
+    justify-content: center; /* выравнивание по горизонтали */
+    align-items: center; /* выравнивание по вертикали */
+
+
+}
+
+.details_div  {
+
+    position: absolute;
+    top: 2em;
+    left: 0px;
+    right: 0px;
+   /* background-color: #ffffff;*/
+
+
+}
+
+.details_chart {
+ max-width: 700px;
+    padding: 10px;
+    margin: auto;
+
+ }
+
+ /*  20 октября 2022года блок добавлениия датчиков*/
+ .add_sensor_block {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 120px;
+    height: 60px;
+    background: #fff;
+    box-shadow: 0 25px 35px rgba(0,0,0,0.1);
+    display: flex;
+    justify: space-between;
+ }
+
+ .add_sensor_block .add_symbol {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    font-weight: 800;
+    font-size: 2em;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+ }
+
+  .add_sensor_block .sensors_head {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: #f00;
+ }
+
+
+
+ /*   Графики  */
+
+.chart_list {
+  width: 50%;
+  margin: auto;
+
+
+}
+
+

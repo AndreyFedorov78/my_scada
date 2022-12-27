@@ -13,29 +13,36 @@
     <!-- Favicons -->
     <meta name="theme-color" content="#7952b3">
     <link href="/static/css/scada.css" rel="stylesheet">
- 
+
 </head>
 <body class="" style="">
 
 {% verbatim %}
-<main class="col-md-9 ml-sm-auto col-lg-12 px-md-4 " id="app">
+
+
+<mai class="col-md-9 ml-sm-auto col-lg-12 px-md-4 " id="app">
+
+
     <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-         style="display: flex">
+         style="display: flex; padding-right: 20px; padding-left: 20px; margin-top: 0; padding-top: 0;">
         <img src="/static/img/logo-2.png" style="width: 150px">
+
 
         <div>
             <button v-on:click="exit()" class="menu_item">выход</button>
 
-        <div class="dropdown">
-            <button class="dropbtn">виджеты</button>
-            <div class="dropdown-content">
+            <div class="dropdown">
+                <button class="dropbtn">виджеты</button>
+                <div class="dropdown-content">
 
-                            <div v-for="i in widgets_new">
-                <a href="##" v-on:click="add_widget(i.id)">{{i.title}} </a>
-            </div>
+                    <div v-for="i in widgets_new">
+                        <a href="##" v-on:click="add_widget(i.id)">{{i.title}} </a>
+                    </div>
+                </div>
             </div>
         </div>
-            </div>
+
+
 
 
     </div>
@@ -63,7 +70,8 @@
                         <div v-if="item.online" class="online">online</div>
                         <div v-else class="online text-danger alarm">offline {{ item.date }}</div>
 
-                         <input v-on:focusout="title_edit(item.id)"  v-on:keyup.enter="title_edit(item.id)"  v-on:keyup.esc="load_last()" v-model='item.title'/>
+                        <input v-on:focusout="title_edit(item.id)" v-on:keyup.enter="title_edit(item.id)"
+                               v-on:keyup.esc="load_last()" v-model='item.title'/>
 
                     </h4>
                 </div>
@@ -86,20 +94,44 @@
 
 
         </div>
+    </div>
 
+
+    </main>
+
+    <div v-show="show_details" class="details_container">
+        <div class="details">
+        <a v-on:click="details_clear()" href="##">X</a>
+        <h3>{{ detail.title }}</h3>
+
+        <div class="details_div">
+
+            <div class="details_chart" v-for="sensor in detail.sensors">
+                <br>
+
+                <canvas :id="sensor.type.id"> 11</canvas>
+                <br><br>
+
+            </div>
+        </div>
 
     </div>
-</main>
+    </div>
 
-{% endverbatim %}
-<script src="/static/js/Chart.min.js"></script>
-<script> const csrf_token = "{{csrf_token}}"</script>
-<script src="/static/js/vue.min.js"></script>
-<script src="/static/js/scada.js"></script>
-<div class="sensor_add">
-    <div v-for="i in widgets_new" v-on:click="add_widget(i.id)"><a href="##">{{ i.title }}</a></div>
-</div>
-<br><br><br>
+    {% endverbatim %}
+
+    <script src="/static/js/chart.js"></script>
+
+    <script> const csrf_token = "{{csrf_token}}"</script>
+    <script src="/static/js/vue.min.js"></script>
+    <script src="/static/js/scada.js"></script>
+    <div class="sensor_add">
+        <div v-for="i in widgets_new" v-on:click="add_widget(i.id)"><a href="##">{{ i.title }}</a></div>
+
+    </div>
+
+
+    <br><br><br>
 </body>
 </html>
 
