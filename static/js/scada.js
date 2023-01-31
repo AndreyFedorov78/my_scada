@@ -68,12 +68,30 @@ new Vue({
             let yArr = []
             let xArr = []
             for (let i = 0; i < dat.length; i++) {
-                yArr.push({x: new Date(dat[i]["date"]), y: dat[i]["data"]/type.divider});
+                yArr.push({x: new Date(dat[i]["date"]), y: dat[i]["data"] / type.divider});
                 // yArr.push( dat[i]["data"]);
-                xArr.push(new Date(dat[i]["date"]).getHours())
+                let h = "" +new Date(dat[i]["date"]).getHours();
+                let m = "" +new Date(dat[i]["date"]).getMinutes();
+                if (h.length == 1) h="0"+h;
+                if (m.length == 1) m="0"+m;
+                xArr.push(h+':'+m)
+                //xArr.push(new Date(dat[i]["date"]))
             }
 
             const options = {
+                spanGaps: 1000 * 60,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        align: 'start',
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            color: '#007bff',
+
+                        },
+                    }
+                },
                 animation: false,
                 interaction: {
                     mode: 'nearest',
@@ -81,8 +99,8 @@ new Vue({
                     intersect: false
                 },
                 scales: {
-
                     x: {
+
                         display: true,
                         title: {
                             display: true
@@ -91,14 +109,23 @@ new Vue({
                             maxRotation: 0,
                             minRotation: 0,
                             autoSkip: true,
-                            maxTicksLimit: 25
+                            maxTicksLimit: 30,
+
                         }
                     },
-
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: type.units
+                        }
+                    }
                 }
             }
+
             new Chart(ctx, {
                 type: 'line',
+                fill: false,
                 data: {
                     labels: xArr,
                     datasets: [{
@@ -106,8 +133,11 @@ new Vue({
                         radius: 0,
                         label: type.title,
                         data: yArr,
-                        backgroundColor: "#AAFFAA",
-                        borderColor: "#0000FF",
+                        borderColor: "#007bff",
+                        backgroundColor: "#007bff",
+                        //backgroundColor: "#AAFFAA",
+                        //borderColor: "#0000FF",
+                        pointStyle: false,
                         borderWidth: 1
                     }]
                 },
@@ -127,7 +157,7 @@ new Vue({
                     return response.json()
                 }).then((dat) => {
                     setTimeout(() => {
-                        this.show_charts(data.data[i].type.id, dat,data.data[i].type)
+                        this.show_charts(data.data[i].type.id, dat, data.data[i].type)
                     }, 50)
 
 
@@ -165,7 +195,7 @@ new Vue({
             this.vent[name] = val;
             let toSend = {};
             toSend[name] = val;
-            await fetch_post('/scada_api/vent/', toSend)
+           // await fetch_post('/scada_api/vent/', toSend)
         },
 
         async delete_widget(id) {
@@ -199,14 +229,19 @@ new Vue({
             }).then((result) => this.widgets_new = result)
         },
 
+        mb_element (item, j) {
+            return (item.data.find(obj => obj.type.subtitle === j).data)/1
+        },
+
+
         // Получение списка виджетов
 
         async load_last() {  // чтение всех данных
-            fetch('/scada_api/vent/').then((response) => {
+           /* fetch('/scada_api/vent/').then((response) => {
                 return response.json()
             }).then((data) => {
                 this.vent = data;
-            });
+            });*/
             await this.load_widget_list(); // получаем перечень виджетов
             await this.load_widget_new();
 

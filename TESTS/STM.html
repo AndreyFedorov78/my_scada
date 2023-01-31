@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>TL_Gate PAGE</title>
+    <style>
+    body {
+                margin: 0;
+                padding: 0;
+                background: white;
+                min-height: 100vh;
+                }
+
+    .logo {
+                padding: 0;
+                margin:  0;
+                font-size: 3em;
+                font-weight: bold;
+                color: white;
+                flex-direction: column;
+                text-align: center;
+                background: #0098d9;
+                height: 1.1em;
+                }
+        .logo  span:nth-child(1) { color: #ff4400; position: absolute; left: 50%; margin-left:-4.0em ;transform: rotate(-10deg); }
+        .logo  span:nth-child(2) { color: #e1e100; position: absolute; left: 50%; margin-left: -3.5em; transform: rotate(5deg); }
+        .logo  span:nth-child(3) {color: #00d27f;position: absolute; left: 50%; margin-left: -2.8em; transform: rotate(-15deg);}
+        .logo  span:nth-child(4) {color: #06fe9e;position: absolute;left: 50%; margin-left: -1.8em; transform: rotate(8deg);}
+        .logo  span:nth-child(5) { color: #c30dec;position: absolute;  left: 50%; margin-left: -1.2em; transform: rotate(-15deg);}
+        .logo  span:nth-child(6) {color: #c70085;position: absolute; left: 50%; margin-left: -0.5em; transform: rotate(10deg);}
+        .logo  span:nth-child(7) {position: absolute; left: 50%;margin-left: 1em;}
+
+
+
+    .container {
+                width: 100%
+                text-align: center;
+                border: solid 0px black;
+                border-top-width: 2px;
+                display: flex;
+                justify-content: center;
+    }
+
+    form {
+            margin: 40 0 0 0;
+            text-align: center;
+    }
+
+
+    button {
+    color: #fff;
+    background-color: #0098d9;
+    width: 300px;
+    height: 54px;
+    border-radius: 100px;
+    box-shadow: 0 10px 13px 0 rgba(42,134,243,.3),0 0 13px 0 rgba(42,134,243,.18);
+    font-size: 1.5em;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 2px;
+    text-align: center;
+    text-transform: uppercase;
+    user-select: none;
+    display: inline-block;
+    border: 1px solid #0098d9;
+    margin: 10 0 0 0;
+    box-sizing: border-box;
+    padding: 0 15px;
+    text-decoration: none;
+
+    }
+
+    button:hover {
+    background-color: #124169;
+    color: #fff;
+    transition: all .2s ease-in 0s;
+    }
+
+    label {
+       font-size: 1.5em;
+    }
+
+    td {
+      padding: 5 5 5 5;
+     }
+
+    .text_input {
+         height: 53px;
+         width: 245px;
+         background-color: transparent;
+         padding-top: 13px;
+         padding-bottom: 13px;
+         font-size: 16px;
+    }
+    </style>
+</head>
+<body>
+
+<div class="logo">
+    <span>Т</span><span>Я</span><span>П</span> <span>Л</span><span>Я</span><span>П</span> <span>devices</span>
+
+</div>
+
+<div class="container">
+<form action="form.cgi" method="get" class="content">
+    <table>
+        <tr>
+            <td><label>MQTT server: </label></td>
+            <td><input class="text_input" name="mqtt_address" value=""></td>
+        </tr>
+        <tr>
+            <td><label>MQTT port: </label></td>
+            <td><input class="text_input" name="mqtt_port" value=""></td>
+
+        </tr>
+        <tr>
+            <td><label>MQTT topic: </label></td>
+            <td><input class="text_input" name="mqtt_topic" value=""></td>
+        </tr>
+        <tr>
+            <td><label>Scada server: </label></td>
+            <td><input class="text_input" id="scada_address" name="scada_address" value=""></td>
+        </tr>
+        <tr>
+            <td><label>Device mac address:</label></td>
+            <td><input class="text_input" name="device_mac_address" value=""></td>
+    </table>
+    <button type="submit">save</button>
+
+</form>
+</div>
+
+<script>
+    function AJAX(a, e) {
+        var c = d();
+        c.onreadystatechange = b;
+
+        function d() {
+            if (window.XMLHttpRequest) {
+                return new XMLHttpRequest()
+            } else {
+                if (window.ActiveXObject) {
+                    return new ActiveXObject("Microsoft.XMLHTTP")
+                }
+            }
+        }
+
+        function b() {
+            if (c.readyState == 4) {
+                if (c.status == 200) {
+                    if (e) {
+                        e(c.responseText)
+                    }
+                }
+            }
+        }
+
+        this.doGet = function () {
+            c.open("GET", a, true);
+            c.send(null)
+        };
+        this.doPost = function (f) {
+            c.open("POST", a, true);
+            c.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            c.setRequestHeader("ISAJAX", "yes");
+            c.send(f)
+        }
+    }
+
+    function $(a) {
+        return document.getElementById(a)
+    }
+
+    function $$(a) {
+        return document.getElementsByName(a)
+    }
+
+    function $$_ie(a, c) {
+        if (!a) {
+            a = "*"
+        }
+        var b = document.getElementsByTagName(a);
+        var e = [];
+        for (var d = 0; d < b.length; d++) {
+            att = b[d].getAttribute("name");
+            if (att == c) {
+                e.push(b[d])
+            }
+        }
+        return e
+    }
+
+    function NetinfoCallback(o) {
+        /* $('txtmac').value=o.mac;*/
+        $('scada_address').value = '123'
+
+    }
+
+    
+    var oUpdate = new AJAX('http://192.168.2.2/get_netinfo.cgi', function (t) {
+        try {
+            eval(t);
+        } catch (e) {
+            alert(e);
+        }
+    });
+    oUpdate.doGet();
+
+
+</script>
+
+</body>
+</html>

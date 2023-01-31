@@ -1,8 +1,10 @@
 {% verbatim %}
 
 <div v-if="'object' == typeof item.data" style="width: 350px; vertical-align: bottom; position: relative;">
+    <span v-if="item.data.length">
     <img src="/static/img/kolodec.png" class="kolodec">
-    <!-- максимальная высота 400, минимальная 50-->
+
+        <!-- максимальная высота 400, минимальная 50-->
     <img v-if="item.online" :height="item.data[0].data/100*350+50" src="/static/img/water.gif"
          style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
     <img v-else :height="item.data[0].data/100*350+50" src="/static/img/water-stop.gif"
@@ -16,10 +18,12 @@
         <span v-if="item.online" style="color: #04fc43;"> <h3>online</h3></span>
         <span v-else> <h3 class="alarm">offline</h3> </span>
     </div>
+        </span>
+    <span v-else> <h1>Нет данных</h1></span>
 </div>
 
-<div>
-<br>
+
+    <br>
 
     {% endverbatim %}
 

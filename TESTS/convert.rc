@@ -1,0 +1,15 @@
+#!/bin/bash
+if [ -n "$1" ]
+then
+echo \#ifndef $1 | sed 's/\./_/' > $1.h
+echo \#define $1 | sed 's/\./_/' >> $1.h
+echo const unsigned char $1 = { | sed 's/\./_/' >> $1.h
+cat $1 |  tr -d '\n' | sed -E 's/ {2,}/ /g' | xxd -i >> $1.h
+echo }\; >> $1.h
+echo \#endif $1 | sed 's/\./_/' >> $1.h
+cat $1 |  tr -d '\n' | sed -E 's/ {2,}/ /g'  >> $1.short
+echo $1 converted to $1.h and to $1.short
+else
+echo $0 filename
+fi
+

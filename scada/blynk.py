@@ -30,8 +30,8 @@ class Blynk:
             {'name': 'reg', 'v': 'V5', 'write': True, 'min': 0, 'max': 5000},
             {'name': 'reg_val', 'v': 'V4', 'write': True, 'min': -500, 'max': 500},
         ]
-        self.data = {}  # сюда загружаются все данные
-        self.get_all()  # чтение данных
+        # self.data = {}  # сюда загружаются все данные
+        # self.get_all()  # чтение данных
         return
 
     def get_all(self):  # чтение всех данных описанных в структуре

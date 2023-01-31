@@ -112,8 +112,10 @@ class SensorLastDays(APIView):
         actual_date = timezone.now() - datetime.timedelta(days=days)
         dat = 0
         counter = 0
+
         for i in sensor:
-            if not (i.date.date() == actual_date.date() and i.date.hour == actual_date.hour):
+            sensor_new.append({'date': i.date, 'data': i.data})
+        """    if not (i.date.date() == actual_date.date() and i.date.hour == actual_date.hour):
                 if counter != 0:
                     sensor_new.append({'date': actual_date, 'data': dat / counter})
                 actual_date = i.date
@@ -122,6 +124,8 @@ class SensorLastDays(APIView):
             dat += i.data
             counter += 1
         sensor_new.append({'date': actual_date, 'data': dat / counter if counter != 0 else 0})
+        """
+
         return Response(sensor_new)
 
 
@@ -196,7 +200,7 @@ class UserWidgets(LoginRequiredMixin, APIView):
         return Response(serializer.data)
 
     @staticmethod
-    def post(request, id = None):
+    def post(request, id =None):
         if id is None:
             all_widgets = MyWidgets.objects.filter(userId_id=request.user).order_by('sort')
             serializer = MyWidgetsSerializer(all_widgets, many=True)
@@ -291,22 +295,15 @@ class OldIpad(View):
     @staticmethod
     def get(request):
 
-       # mqtt.client = mqtt.connect_mqtt()
-       # mqtt.subscribe(mqtt.client)
-       # mqtt.client.loop_start()
-
-
         alarm_level = 35
         kolodez = SensorList.objects.filter(title='Колодец')[0]
         all_data = Sensor.objects.filter(sensorId=kolodez)[0]
         water = all_data.data
         delta = datetime.datetime.today().timestamp() - all_data.date.timestamp()
 
-
         pool = SensorList.objects.filter(title='Бассеин')[0]
         all_data = Sensor.objects.filter(sensorId=pool)[0]
         pool = all_data.data/10
-
 
         out_sensor = SensorList.objects.filter(title='Улица дача')[0]
         all_data = Sensor.objects.filter(sensorId=out_sensor)
@@ -338,7 +335,7 @@ class Connect(LoginRequiredMixin, APIView):
         answer= mqtt.client.is_connected()
         # mqtt.client.enable_logger()
         # subscribe=mqtt.client.
-        return Response({'connect':answer})
+        return Response({'connect': answer})
 
 
 """

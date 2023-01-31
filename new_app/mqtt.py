@@ -39,6 +39,7 @@ def subscribe(client: mqtt_client):
             msg_body = msg.payload.decode()
         except:
             return
+        #print (msg.topic,"   ",msg_body)
         data = msg.topic.split('/')
         data.append(msg.payload.decode())  ##!!!!
         if len(data) < 4:

@@ -20,7 +20,7 @@ class Widget(models.Model):
 
 class DataTypes(models.Model):
     id = models.IntegerField(primary_key=True, auto_created=True)
-    subtitle = models.CharField('Имя в датчике', blank=False, null=False, max_length=3, default='-')
+    subtitle = models.CharField('Имя в датчике', blank=False, null=False, max_length=10, default='-')
     title = models.CharField('Наименование', blank=False, null=False, max_length=100, default='--')
     units = models.CharField('Ед Измерения', blank=True, null=True, max_length=5, default='')
     divider = models.IntegerField('Делитель',  blank=False, null=False, default=1)

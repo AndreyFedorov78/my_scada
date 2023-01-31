@@ -18,7 +18,7 @@ html {
 body {
      background-image: url(/static/img/bg.png);
      justify-content: center; /* выравнивание по горизонтали */
-      height: 100%;
+     min-height: 100vh;
 }
 
 .app {
@@ -337,13 +337,6 @@ body {
 .pool {
     top: 4em;
     left: 0px;
-
-
-
-
-
-
-
     position: absolute;
     align-items: top;
     margin-top: 0px;
@@ -379,7 +372,10 @@ body {
     top: 0px;
     left: 10px;
     right: 10px;
-    bottom: 0px;
+    /*bottom: 0px;*/
+
+    height: 90vh;
+    overflow-y:scroll;
     display: flex;
         justify-content: center; /* выравнивание по горизонтали */
     align-items: center; /* выравнивание по вертикали */
