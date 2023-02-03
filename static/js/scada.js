@@ -52,6 +52,7 @@ new Vue({
         vent: [],  // данные венустанвки
         charts: [], // графики
         show_details: false,
+        block_list: [],
         detail: {
             title: "",
             sensors: [],
@@ -191,11 +192,21 @@ new Vue({
         },
 
 
-        async ventManage(name, val) {      // переключение венташины
-            this.vent[name] = val;
-            let toSend = {};
-            toSend[name] = val;
-           // await fetch_post('/scada_api/vent/', toSend)
+        async devManage(item, name, val) {      // отправка данныйх в устройство
+            let toSend = {
+                'id' : item.sensor.id ,
+                'name' : name,
+                'val'  : val
+            };
+            await fetch_post('/scada_api/devmanage/', toSend)
+            let index = item.data.findIndex(obj => obj.type.subtitle === name)
+            item.data[index].data = val;
+            index = this.widgets_list.findIndex(obj => obj.id === item.id)
+            this.widgets_list[index]=item;
+            this.block_list=this.block_list.filter(element => {return element.item.id !== item.id;});
+            this.block_list.push({'time':Math.floor(Date.now() / 1000)+20, 'item':item})
+            await this.load_last(); // загружаем данные
+
         },
 
         async delete_widget(id) {
@@ -218,8 +229,34 @@ new Vue({
         // Получение списка виджетов
         async load_widget_list() {
             await fetch_post('/scada_api/mywidgets/').then((result) => {
+
                 return result.json()
-            }).then((result) => this.widgets_list = result)
+            }).then((result) => {
+
+                let widgets_list = result;
+                this.block_list=this.block_list.filter(element => {return element.time > (Math.floor(Date.now() / 1000));});
+                 for (let i=0; i< widgets_list.length; i++) {
+                    let blocked = this.block_list.filter(element => {return element.item.id == widgets_list[i].id;});
+                    if (blocked.length) {
+                         widgets_list[i] = blocked[0]['item']
+                        blocked=[]
+
+                    }
+
+                    //console.log(widgets_list[i])
+                }
+                this.widgets_list = widgets_list;
+
+                /*
+                *
+                *this.block_list=this.block_list.filter(element => {return element.item.id !== item.id;});
+            this.block_list.push({'time':Math.floor(Date.now() / 1000)+20, 'item':item})
+            console.log(this.block_list);
+            console.log(this.block_list.map(elem => elem.item.id));
+                * */
+
+                    // проверить на block
+            })
         },
 
         // Получение списка виджетов

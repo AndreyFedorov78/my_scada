@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import time
 import pytz
+import requests
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -17,8 +18,6 @@ from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializ
 from new_app import mqtt
 
 
-
-
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
@@ -26,7 +25,8 @@ def utc_to_local(utc_dt):
 class ButtonTest(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
-                return render(request, 'scada/bt.html')
+        return render(request, 'scada/bt.html')
+
 
 class Index(LoginRequiredMixin, View):
     @staticmethod
@@ -41,17 +41,35 @@ class Clock(View):
         return render(request, 'scada/clock.html')
 
 
-class Vent(APIView):
+class DevManage(APIView):
     @staticmethod
     def get(request):
-        result = Blynk()
-        return Response(result.data)
+        # result = Blynk()
+        return Response(status=201)
 
     @staticmethod
     def post(request):
         if request.user.username != 'tester':
-            result = Blynk()
-            result.put_data(request.data)
+            if (type(request.data.get('id', "error")) != int or
+                    request.data.get('val', "") == "" or
+                    request.data.get('name', "") == ""):
+                print("error")
+                return Response(status=300)
+            id = request.data['id'] % 256
+            router = request.data['id'] - id
+            routerTest = '111'
+            val = request.data['val']
+            name = request.data['name']
+            topic = f'{mqtt.ROOT_TOPIC}RX/{router}/{id}/{name}'
+            topicTest = f'{mqtt.ROOT_TOPIC}RX/{routerTest}/{id}/{name}'
+            mqtt.client.publish(topic, val)
+            time.sleep(1)
+            mqtt.client.publish(topicTest, val)
+
+            """
+            for i in request.data.keys():
+                print(i,request.data[i])
+            """
             return Response(status=201)
         return Response(status=300)
 
@@ -107,7 +125,8 @@ class SensorLastDays(APIView):
     @staticmethod
     def get(request, sensor_id, data_type, days):
         start_date = timezone.now() - datetime.timedelta(days=days)
-        sensor = SensorArhive.objects.all().order_by('date').filter(sensorId=sensor_id, type=data_type, date__gt=start_date)
+        sensor = SensorArhive.objects.all().order_by('date').filter(sensorId=sensor_id, type=data_type,
+                                                                    date__gt=start_date)
         sensor_new = []
         actual_date = timezone.now() - datetime.timedelta(days=days)
         dat = 0
@@ -141,7 +160,8 @@ class tmpView(APIView):
     @staticmethod
     def post(request):
         # удаляем страрые данные
-        tmp.objects.filter(date__lt=datetime.datetime.now(pytz.timezone('Europe/Moscow')) - datetime.timedelta(seconds=20)).delete()
+        tmp.objects.filter(
+            date__lt=datetime.datetime.now(pytz.timezone('Europe/Moscow')) - datetime.timedelta(seconds=20)).delete()
         # начинаем обработку
         data = tmpSerializer(data=request.data)
         if data.is_valid():
@@ -200,7 +220,7 @@ class UserWidgets(LoginRequiredMixin, APIView):
         return Response(serializer.data)
 
     @staticmethod
-    def post(request, id =None):
+    def post(request, id=None):
         if id is None:
             all_widgets = MyWidgets.objects.filter(userId_id=request.user).order_by('sort')
             serializer = MyWidgetsSerializer(all_widgets, many=True)
@@ -240,16 +260,14 @@ class UserWidgets(LoginRequiredMixin, APIView):
                 object2 = MyWidgets.objects.filter(sort__gt=object1.sort).order_by('sort')
             else:
                 object2 = MyWidgets.objects.filter(sort__lt=object1.sort).order_by('-sort')
-            if len(object2) == 0 :
+            if len(object2) == 0:
                 return Response(status=201)
             object2 = object2[0]
             object1.sort, object2.sort = object2.sort, object1.sort
             object2.save()
             object1.save()
 
-
             return Response(status=201)
-
 
     @staticmethod
     def delete(request, id):
@@ -282,19 +300,19 @@ class UserWidgets(LoginRequiredMixin, APIView):
         widget.save()
         return Response(status=201)
 
+
 class GetWidgetsList(LoginRequiredMixin, APIView):
     @staticmethod
     def post(request):
-
         my_sensors = MyWidgets.objects.filter(userId=request.user).values('sensor')
         new_sensors = SensorList.objects.exclude(id__in=my_sensors).filter(active=True)
         result = GetWidgetsListSerializer(new_sensors, many=True).data
         return Response(result)
 
+
 class OldIpad(View):
     @staticmethod
     def get(request):
-
         alarm_level = 35
         kolodez = SensorList.objects.filter(title='Колодец')[0]
         all_data = Sensor.objects.filter(sensorId=kolodez)[0]
@@ -303,7 +321,7 @@ class OldIpad(View):
 
         pool = SensorList.objects.filter(title='Бассеин')[0]
         all_data = Sensor.objects.filter(sensorId=pool)[0]
-        pool = all_data.data/10
+        pool = all_data.data / 10
 
         out_sensor = SensorList.objects.filter(title='Улица дача')[0]
         all_data = Sensor.objects.filter(sensorId=out_sensor)
@@ -332,7 +350,7 @@ class OldIpad(View):
 class Connect(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
-        answer= mqtt.client.is_connected()
+        answer = mqtt.client.is_connected()
         # mqtt.client.enable_logger()
         # subscribe=mqtt.client.
         return Response({'connect': answer})
