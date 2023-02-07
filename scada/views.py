@@ -62,6 +62,7 @@ class DevManage(APIView):
             name = request.data['name']
             topic = f'{mqtt.ROOT_TOPIC}RX/{router}/{id}/{name}'
             topicTest = f'{mqtt.ROOT_TOPIC}RX/{routerTest}/{id}/{name}'
+            print(topic)
             mqtt.client.publish(topic, val)
             time.sleep(1)
             mqtt.client.publish(topicTest, val)

@@ -58,13 +58,20 @@ def subscribe(client: mqtt_client):
             sensor.id = data[1]
             sensor.save()
         sensor = SensorList.objects.get(id=data[1])
+
         if not sensor.active:
             return
         if not DataTypes.objects.filter(subtitle=data[2]).exists():
             datatype = DataTypes()
             datatype.subtitle = data[2]
+            datatype.title = data[2]
             datatype.save()
-        datatype = DataTypes.objects.get(subtitle=data[2])
+
+        #Это место сбоило на рабочей базе!!!
+        #datatype = DataTypes.objects.get(subtitle=data[2])
+        datatype = DataTypes.objects.filter(subtitle=data[2])[0]
+
+
         newRecord = Sensor()
         arhive = SensorArhive()
         arhive.sensorId = newRecord.sensorId = sensor
@@ -75,6 +82,7 @@ def subscribe(client: mqtt_client):
         newRecord.save()
         sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
                 type=newRecord.type).exclude(pk=newRecord.pk)[1:]
+
 
         for item in sensor:
             item.delete()

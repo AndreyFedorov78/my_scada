@@ -204,7 +204,7 @@ new Vue({
             index = this.widgets_list.findIndex(obj => obj.id === item.id)
             this.widgets_list[index]=item;
             this.block_list=this.block_list.filter(element => {return element.item.id !== item.id;});
-            this.block_list.push({'time':Math.floor(Date.now() / 1000)+20, 'item':item})
+            this.block_list.push({'time':Math.floor(Date.now() / 1000)+3, 'item':item})
             await this.load_last(); // загружаем данные
 
         },
@@ -289,7 +289,7 @@ new Vue({
 
         setInterval(function () { // обновляем данные каждые 20 секунд
             this.load_last()
-        }.bind(this), 20000);
+        }.bind(this), 5000);
 
 
     }
