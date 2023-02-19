@@ -57,20 +57,11 @@ class DevManage(APIView):
                 return Response(status=300)
             id = request.data['id'] % 256
             router = request.data['id'] - id
-            routerTest = '111'
             val = request.data['val']
             name = request.data['name']
             topic = f'{mqtt.ROOT_TOPIC}RX/{router}/{id}/{name}'
-            topicTest = f'{mqtt.ROOT_TOPIC}RX/{routerTest}/{id}/{name}'
             print(topic)
             mqtt.client.publish(topic, val)
-            time.sleep(1)
-            mqtt.client.publish(topicTest, val)
-
-            """
-            for i in request.data.keys():
-                print(i,request.data[i])
-            """
             return Response(status=201)
         return Response(status=300)
 

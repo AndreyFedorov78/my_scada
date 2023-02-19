@@ -20,7 +20,7 @@
 {% verbatim %}
 
 
-<mai class="col-md-9 ml-sm-auto col-lg-12 px-md-4 " id="app">
+<mai class=" ml-sm-auto  px-md-4 " id="app">
 
 
     <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
@@ -96,24 +96,28 @@
     </main>
 
     <div v-show="show_details" class="details_container">
-        <div class="details">
-        <a v-on:click="details_clear()" href="##">X</a>
-        <h3>{{ detail.title }}</h3>
 
-        <div class="details_div">
+        <div class="details">
+            <a v-on:click="details_clear()" href="##">X</a>
+
+            <h3>{{ detail.title }}</h3>
+
 
             <div class="details_chart" v-for="sensor in detail.sensors">
                 <br>
 
-                <canvas :id="sensor.type.id"> 11</canvas>
+                <canvas :id="sensor.type.id"></canvas>
+
+
                 <br><br>
 
             </div>
+
+
+
         </div>
 
     </div>
-    </div>
-
     {% endverbatim %}
 
     <script src="/static/js/chart.js"></script>

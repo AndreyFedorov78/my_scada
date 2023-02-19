@@ -47,6 +47,7 @@ function sleep(ms) {
 new Vue({
     el: '#app',
     data: {
+        pos : 'position: fixed',
         widgets_list: [],   //
         widgets_new: [],   //
         vent: [],  // данные венустанвки
@@ -64,6 +65,7 @@ new Vue({
     methods: {
         async show_charts(id, dat, type) {
             while (null == document.getElementById(id)) {
+                console.log(id);
             }
             const ctx = document.getElementById(id).getContext('2d');
             let yArr = []
@@ -71,11 +73,11 @@ new Vue({
             for (let i = 0; i < dat.length; i++) {
                 yArr.push({x: new Date(dat[i]["date"]), y: dat[i]["data"] / type.divider});
                 // yArr.push( dat[i]["data"]);
-                let h = "" +new Date(dat[i]["date"]).getHours();
-                let m = "" +new Date(dat[i]["date"]).getMinutes();
-                if (h.length == 1) h="0"+h;
-                if (m.length == 1) m="0"+m;
-                xArr.push(h+':'+m)
+                let h = "" + new Date(dat[i]["date"]).getHours();
+                let m = "" + new Date(dat[i]["date"]).getMinutes();
+                if (h.length == 1) h = "0" + h;
+                if (m.length == 1) m = "0" + m;
+                xArr.push(h + ':' + m)
                 //xArr.push(new Date(dat[i]["date"]))
             }
 
@@ -102,10 +104,13 @@ new Vue({
                 scales: {
                     x: {
 
+
                         display: true,
                         title: {
                             display: true
                         },
+
+
                         ticks: {
                             maxRotation: 0,
                             minRotation: 0,
@@ -115,6 +120,7 @@ new Vue({
                         }
                     },
                     y: {
+                        beginAtZero: true,
                         display: true,
                         title: {
                             display: true,
@@ -149,26 +155,41 @@ new Vue({
 
         details(id) {
 
+            console.log(id)
+            this.show_details = true
             let data = search_by_id(id, this.widgets_list)
             this.detail.title = data.title
             for (let i = 0; i < data.data.length; i++) {
                 this.detail.sensors.push(data.data[i])
-
                 fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
                     return response.json()
                 }).then((dat) => {
                     setTimeout(() => {
                         this.show_charts(data.data[i].type.id, dat, data.data[i].type)
                     }, 50)
-
-
                 })
-
-
             }
 
+/*
+            for (let i = 0; i < data.data.length; i++) {
+                this.detail.sensors.push(data.data[i])
 
-            this.show_details = true
+
+                fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
+                    return response.json()
+                }).then((dat) => {
+                    setTimeout(() => {
+                        console.log("1:",data.data[i].type.id)
+                        this.detail.sensors[this.detail.sensors.length - 1].type.id += "Y"
+                        console.log("2:",data.data[i].type.id)
+                         //this.show_charts(data.data[i].type.id , dat, data.data[i].type)
+                    }, 50)
+                })
+
+            } */
+
+
+
 
 
         },
@@ -194,17 +215,19 @@ new Vue({
 
         async devManage(item, name, val) {      // отправка данныйх в устройство
             let toSend = {
-                'id' : item.sensor.id ,
-                'name' : name,
-                'val'  : val
+                'id': item.sensor.id,
+                'name': name,
+                'val': val
             };
             await fetch_post('/scada_api/devmanage/', toSend)
             let index = item.data.findIndex(obj => obj.type.subtitle === name)
             item.data[index].data = val;
             index = this.widgets_list.findIndex(obj => obj.id === item.id)
-            this.widgets_list[index]=item;
-            this.block_list=this.block_list.filter(element => {return element.item.id !== item.id;});
-            this.block_list.push({'time':Math.floor(Date.now() / 1000)+3, 'item':item})
+            this.widgets_list[index] = item;
+            this.block_list = this.block_list.filter(element => {
+                return element.item.id !== item.id;
+            });
+            this.block_list.push({'time': Math.floor(Date.now() / 1000) + 3, 'item': item})
             await this.load_last(); // загружаем данные
 
         },
@@ -234,12 +257,16 @@ new Vue({
             }).then((result) => {
 
                 let widgets_list = result;
-                this.block_list=this.block_list.filter(element => {return element.time > (Math.floor(Date.now() / 1000));});
-                 for (let i=0; i< widgets_list.length; i++) {
-                    let blocked = this.block_list.filter(element => {return element.item.id == widgets_list[i].id;});
+                this.block_list = this.block_list.filter(element => {
+                    return element.time > (Math.floor(Date.now() / 1000));
+                });
+                for (let i = 0; i < widgets_list.length; i++) {
+                    let blocked = this.block_list.filter(element => {
+                        return element.item.id == widgets_list[i].id;
+                    });
                     if (blocked.length) {
-                         widgets_list[i] = blocked[0]['item']
-                        blocked=[]
+                        widgets_list[i] = blocked[0]['item']
+                        blocked = []
 
                     }
 
@@ -255,7 +282,7 @@ new Vue({
             console.log(this.block_list.map(elem => elem.item.id));
                 * */
 
-                    // проверить на block
+                // проверить на block
             })
         },
 
@@ -266,19 +293,19 @@ new Vue({
             }).then((result) => this.widgets_new = result)
         },
 
-        mb_element (item, j) {
-            return (item.data.find(obj => obj.type.subtitle === j).data)/1
+        mb_element(item, j) {
+            return (item.data.find(obj => obj.type.subtitle === j).data) / 1
         },
 
 
         // Получение списка виджетов
 
         async load_last() {  // чтение всех данных
-           /* fetch('/scada_api/vent/').then((response) => {
-                return response.json()
-            }).then((data) => {
-                this.vent = data;
-            });*/
+            /* fetch('/scada_api/vent/').then((response) => {
+                 return response.json()
+             }).then((data) => {
+                 this.vent = data;
+             });*/
             await this.load_widget_list(); // получаем перечень виджетов
             await this.load_widget_new();
 
@@ -286,6 +313,7 @@ new Vue({
     },
     async created() {
         await this.load_last(); // загружаем данные
+
 
         setInterval(function () { // обновляем данные каждые 20 секунд
             this.load_last()
