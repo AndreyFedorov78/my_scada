@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 
 class Widget(models.Model):
-    id = models.IntegerField(primary_key=True, auto_created=True)
+    id = models.AutoField(primary_key=True)
     title = models.CharField('Наименование', blank=False, null=False, max_length=100, default='-')
     filename = models.CharField('Имя файла', blank=False, null=False, max_length=100, default='-')
 
@@ -19,7 +19,7 @@ class Widget(models.Model):
 
 
 class DataTypes(models.Model):
-    id = models.IntegerField(primary_key=True, auto_created=True)
+    id = models.AutoField(primary_key=True)
     subtitle = models.CharField('Имя в датчике', blank=False, null=False, max_length=10, default='-')
     title = models.CharField('Наименование', blank=False, null=False, max_length=100, default='--')
     units = models.CharField('Ед Измерения', blank=True, null=True, max_length=5, default='')
@@ -36,7 +36,7 @@ class DataTypes(models.Model):
 
 
 class SensorList(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.PositiveBigIntegerField(primary_key=True)
     title = models.CharField('Наименование', blank=False, null=False, max_length=150, default='неизвестнвый датчик')
     sort = models.IntegerField('Индекс Сортировки', blank=False, null=False, default=9999)
     active = models.BooleanField('Включен', blank=False, null=False, default=False)
@@ -69,7 +69,7 @@ class Sensor(models.Model):
         return f"{self.sensorId}, {self.type}:{self.data} от  {self.date:%X (%d-%m-%y)}"
 
 class SensorArhive (models.Model):
-    id = models.AutoField(db_column='id', primary_key=True)
+    id = models.AutoField(primary_key=True)
     sensorId = models.ForeignKey(SensorList, on_delete=models.CASCADE, default=0)
     type = models.ForeignKey(DataTypes, on_delete=models.DO_NOTHING,   blank=True, null=True, default=None)
     data = models.IntegerField('данные', blank=True, null=True, default=0)

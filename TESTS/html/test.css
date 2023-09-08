@@ -1,0 +1,60 @@
+
+.card {
+   margin: 10px;
+   min-width: 300px;
+   border: 1px solid black;
+
+}
+@media (max-width: 350px) {
+    .card {
+        width: 100%;
+    }
+}
+
+.card_container {
+ display: flex;
+ flex-wrap: wrap;
+}
+
+
+
+
+/* крест в круге*/
+.circle {
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    border: 2px solid black;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: .2em;
+
+}
+.cross {
+    position: absolute;
+    width: 80%;
+    height: 2px;
+    background-color: black;
+}
+.cross:last-child {
+     transform: rotate(90deg);
+}
+
+/* иконки на основании круга*/
+
+.add {
+    background: green;
+}
+
+.close {
+    background: red;
+    transform: rotate(45deg);
+
+}
+
+.close >  .cross {
+    background-color: white;
+}
+

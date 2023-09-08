@@ -4,6 +4,21 @@ const headers_post = {                   // заголовок post запрос
     'X-CSRFToken': csrf_token
 }
 
+
+const vent_id = 950559233;
+
+
+
+Vue.filter('twoDigits', function (value) {
+  if (value < 10) {
+    return '0' + value;
+  }
+  return value.toString();
+});
+
+
+
+
 async function fetch_post(url, data) {  // функция post запросов
     let response = await fetch(url, {
         method: 'post',
@@ -46,27 +61,32 @@ function sleep(ms) {
 
 new Vue({
     el: '#app',
+    delimiters: ['[[', ']]'],
     data: {
-        pos: 'position: fixed',
-        widgets_list: [],   //
-        widgets_new: [],   //
         vent: [],  // данные венустанвки
-        charts: [], // графики
-        show_details: false,
-        block_list: [],
-        detail: {
-            title: "",
-            sensors: [],
-
-        },
-        load_block: 0,
-
+        minutes: 0,
+        hours: 0,
+        out_temp: 0,
+        temp: 0,
+        CO: 0,
+        humidity: 0,
+        vent_speed:0,
+        vent_heat:0,
+        load_delay: 0,
 
     },
     methods: {
+
+        clock(){
+          const now = new Date();
+          this.hours = now.getHours();
+          this.minutes = now.getMinutes();
+
+        },
+
         async show_charts(id, dat, type) {
             while (null == document.getElementById(id)) {
-
+                console.log(id);
             }
             const ctx = document.getElementById(id).getContext('2d');
             let yArr = []
@@ -156,7 +176,7 @@ new Vue({
 
         details(id) {
 
-
+            console.log(id)
             this.show_details = true
             let data = search_by_id(id, this.widgets_list)
             this.detail.title = data.title
@@ -171,23 +191,26 @@ new Vue({
                 })
             }
 
-            /*
-                        for (let i = 0; i < data.data.length; i++) {
-                            this.detail.sensors.push(data.data[i])
+/*
+            for (let i = 0; i < data.data.length; i++) {
+                this.detail.sensors.push(data.data[i])
 
 
-                            fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
-                                return response.json()
-                            }).then((dat) => {
-                                setTimeout(() => {
-                                    console.log("1:",data.data[i].type.id)
-                                    this.detail.sensors[this.detail.sensors.length - 1].type.id += "Y"
-                                    console.log("2:",data.data[i].type.id)
-                                     //this.show_charts(data.data[i].type.id , dat, data.data[i].type)
-                                }, 50)
-                            })
+                fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
+                    return response.json()
+                }).then((dat) => {
+                    setTimeout(() => {
+                        console.log("1:",data.data[i].type.id)
+                        this.detail.sensors[this.detail.sensors.length - 1].type.id += "Y"
+                        console.log("2:",data.data[i].type.id)
+                         //this.show_charts(data.data[i].type.id , dat, data.data[i].type)
+                    }, 50)
+                })
 
-                        } */
+            } */
+
+
+
 
 
         },
@@ -206,38 +229,30 @@ new Vue({
         },
 
         title_edit(id) {
-            fetch_post('/scada_api/mywidgets/' + id + '/', {'title': search_by_id(id, this.widgets_list).title}).then(this.load_block = 0);
+            fetch_post('/scada_api/mywidgets/' + id + '/', {'title': search_by_id(id, this.widgets_list).title})
 
         },
 
 
-        async devManage(item, name, val) {      // отправка данныйх в устройство
+
+
+
+
+
+
+
+
+        async devManage(name, val) {      // отправка данныйх в устройство
             let toSend = {
-                'id': item.sensor.id,
+                'id': vent_id,
                 'name': name,
                 'val': val
             };
             await fetch_post('/scada_api/devmanage/', toSend)
-            let index = item.data.findIndex(obj => obj.type.subtitle === name)
-            if (name[0] == 'C' && name.length > 2) {
-                let new_name = 'C-0';
-
-                index = item.data.findIndex(obj => obj.type.subtitle === new_name)
-                val = item.data[index].data ^ (1 << (name[2] / 1))
-
-            }
-
-            item.data[index].data = val;
-            index = this.widgets_list.findIndex(obj => obj.id === item.id)
-            this.widgets_list[index] = item;
-            this.block_list = this.block_list.filter(element => {
-                return element.item.id !== item.id;
-            });
-            this.block_list.push({'time': Math.floor(Date.now() / 1000) + 3, 'item': item})
-            await this.load_last(); // загружаем данные
+            this.load_delay=3;
 
         },
-
+/*
         async delete_widget(id) {
             await fetch_delete('/scada_api/mywidgets/' + id + '/')
             this.load_last()
@@ -276,7 +291,7 @@ new Vue({
 
                     }
 
-
+                    //console.log(widgets_list[i])
                 }
                 this.widgets_list = widgets_list;
 
@@ -286,22 +301,17 @@ new Vue({
             this.block_list.push({'time':Math.floor(Date.now() / 1000)+20, 'item':item})
             console.log(this.block_list);
             console.log(this.block_list.map(elem => elem.item.id));
-                * */
+
 
                 // проверить на block
             })
-        },
+        },*/
 
-        // Получение списка виджетов
+        /*/ Получение списка виджетов
         async load_widget_new() {
-
-
             await fetch_post('/scada_api/getsensor/').then((result) => {
                 return result.json()
-            }).then((result) => {
-                this.widgets_new = result;
-            })
-
+            }).then((result) => this.widgets_new = result)
         },
 
         mb_element(item, j) {
@@ -310,29 +320,44 @@ new Vue({
 
 
         // Получение списка виджетов
-
-        async load_last() {
-            // чтение всех данных
-            /* fetch('/scada_api/vent/').then((response) => {
-                 return response.json()
-             }).then((data) => {
-                 this.vent = data;
-             });*/
-            if (this.load_block) {
-                return;
+*/
+        async dataLoad() {  // чтение всех данных
+            if (this.load_delay) {
+                this.load_delay--;
+                return
             }
-            await this.load_widget_list(); // получаем перечень виджетов
-            await this.load_widget_new();
+
+            await fetch_post('/scada_api/sensor_data/1953992321/T/').then((result) => {
+                return result.json() }).then((result) => { this.out_temp = result.data/result.type.divider; });
+            await fetch_post('/scada_api/sensor_data/1953992342/T/').then((result) => {
+                return result.json() }).then((result) => { this.temp = result.data/result.type.divider; });
+             await fetch_post('/scada_api/sensor_data/1953992342/H/').then((result) => {
+                return result.json() }).then((result) => { this.humidity = result.data/result.type.divider; });
+             await fetch_post('/scada_api/sensor_data/1953992342/CO/').then((result) => {
+                return result.json() }).then((result) => { this.CO = result.data/result.type.divider; });
+             await fetch_post('/scada_api/sensor_data/'+vent_id+'/R-100/').then((result) => {
+
+                return result.json() }).then((result) => {this.vent_speed = result.data});
+             await fetch_post('/scada_api/sensor_data/'+vent_id+'/R-206/').then((result) => {
+                return result.json() }).then((result) => { this.vent_heat = result.data/1; });
+
+
+
+
 
         },
     },
     async created() {
-        await this.load_last(); // загружаем данные
+
+        setInterval(function () {
+            this.clock();
+        }.bind(this), 500);
 
 
+        await this.dataLoad(); // загружаем данные
         setInterval(function () { // обновляем данные каждые 20 секунд
-            this.load_last()
-        }.bind(this), 1000);
+            this.dataLoad()
+        }.bind(this), 5000);
 
 
     }

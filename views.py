@@ -17,7 +17,6 @@ from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
 from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
 from new_app import mqtt
 
-mqtt.mqtt_start()
 
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
@@ -229,7 +228,6 @@ class UserWidgets(LoginRequiredMixin, APIView):
 
     @staticmethod
     def post(request, id=None):
-
         if id is None:
             all_widgets = MyWidgets.objects.filter(userId_id=request.user).order_by('sort')
             serializer = MyWidgetsSerializer(all_widgets, many=True)
@@ -316,10 +314,6 @@ class GetWidgetsList(LoginRequiredMixin, APIView):
         my_sensors = MyWidgets.objects.filter(userId=request.user).values('sensor')
         new_sensors = SensorList.objects.exclude(id__in=my_sensors).filter(active=True)
         result = GetWidgetsListSerializer(new_sensors, many=True).data
-        # так как java не работает по умолчанию с 64разрядными целыми
-        # переодим id в строку
-        for item in result:
-            item['id']=f"{item['id']}"
         return Response(result)
 
 

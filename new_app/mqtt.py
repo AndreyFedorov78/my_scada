@@ -10,18 +10,21 @@ import pytz
 
 ROOT_TOPIC = "my_scada"
 
-broker = 'fedorov.team'
+broker = 'tldev.ru'
 port = 1883
 username = "myscada"
 password = "12345678"
 topic = ROOT_TOPIC+"/#"
-client_id = f'T-L_scada-{random.randint(1, 1000)}'
+client_id = f'2023_T-L_scada-{random.randint(1, 1000)}'
+
+
 
 
 # print("id=", client_id)
 
 
 def connect_mqtt():
+    print(f'вызов соединения client_id= {client_id}')
     def on_connect(client, userdata, flags, rc):
         if rc != 0:
             print("Failed to connect, return code %d\n", rc)
@@ -70,8 +73,6 @@ def subscribe(client: mqtt_client):
         #Это место сбоило на рабочей базе!!!
         #datatype = DataTypes.objects.get(subtitle=data[2])
         datatype = DataTypes.objects.filter(subtitle=data[2])[0]
-
-
         newRecord = Sensor()
         arhive = SensorArhive()
         arhive.sensorId = newRecord.sensorId = sensor
@@ -82,46 +83,19 @@ def subscribe(client: mqtt_client):
         newRecord.save()
         sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
                 type=newRecord.type).exclude(pk=newRecord.pk)[1:]
-
-
         for item in sensor:
             item.delete()
-
-
         for x in range(0, 10):  # данные могут поступать одновременно, надо качественно подчистить
             sensor = SensorArhive.objects.filter(sensorId=newRecord.sensorId).filter(
                 type=newRecord.type).order_by('-date')[:3]
             if len(sensor) == 3:
                 if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
                     sensor[1].delete()
-
-    #  except:
-    #      pass
-
     client.subscribe(topic)
     client.on_message = on_message
 
 
-
-
-
-client = connect_mqtt()
-subscribe(client)
-# client.loop_forever()
-
-"""
-def publish(client):
-     msg_count = 0
-     while True:
-         time.sleep(1)
-         msg = f"messages: {msg_count}"
-         result = client.publish(topic, msg)
-         # result: [0, 1]
-         status = result[0]
-         if status == 0:
-            // print(f"Send `{msg}` to topic `{topic}`")
-         else:
-             pass
-            // print(f"Failed to send message to topic {topic}")
-         msg_count += 1
-"""
+def mqtt_start():
+    client = connect_mqtt()  # Изменение значения клиента
+    subscribe(client)  # Подписка на MQTT
+    client.loop_start()

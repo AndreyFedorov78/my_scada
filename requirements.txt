@@ -1,0 +1,16 @@
+asgiref
+certifi
+charset-normalizer
+Django
+django-rest
+django-rest-action-serializer
+django-rest-framework
+djangorestframework
+idna
+paho-mqtt
+pytz
+requests
+six
+sqlparse
+typing-extensions
+urllib3

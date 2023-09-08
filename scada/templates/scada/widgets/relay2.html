@@ -1,0 +1,59 @@
+{% verbatim %}
+
+
+
+
+<span v-for="sensor, index in item.data" class="text-center" >
+        <span v-if="sensor.type.subtitle[0] =='T'">
+        <br><span class="weatherEx"><b>{{ sensor.type.title  }}:</b></span> <br>
+        <span class="weather" >
+        <span class="text-center">  {{ sensor.data/10  }} С</span>
+            <span> o</span><br>
+        </span>
+        </span>
+</span>
+
+
+
+<br><br>
+<span v-for="sensor, index in item.data">
+<span v-if="sensor.type.subtitle[0] =='C'">
+
+<div v-if="sensor.data" class="relay_button" v-bind:style="'background:green'" v-on:click="devManage(item,'C-3',0)" >{{sensor.type.subtitle[2]}}</div>
+               <div v-else class="relay_button" v-on:click="">{{sensor.type.subtitle[2]}}</div>
+
+
+        <div v-if="sensor.type.subtitle == 'C-0'">
+
+
+  <!-- v-on:click="devManage(item,'C-1',0) -->
+  <div v-if="sensor.data-256 & 08" class="relay_button" v-bind:style="'background:green'" v-on:click="devManage(item,'C-3',0)" >4</div>
+               <div v-else class="relay_button" v-on:click="">4</div>
+
+                <div v-if="sensor.data-256 & 04" class="relay_button" v-bind:style="'background:green'" v-on:click="" >3</div>
+               <div v-else class="relay_button" >3</div>
+
+             <div v-if="sensor.data-256 & 02" class="relay_button" v-bind:style="'background:green'" v-on:click="" >2</div>
+               <div v-else class="relay_button" v-on:click="devManage(item,'C-2',256*255)">2</div>
+               <div v-if="sensor.data-256 & 01" class="relay_button" v-bind:style="'background:green'" v-on:click="" >1</div>
+               <div v-else class="relay_button" v-on:click="">1</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+</span>
+
+
+    </span>
+<br><br>
+
+
+{% endverbatim %}

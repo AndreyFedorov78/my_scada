@@ -33,6 +33,8 @@ class SensorDetailSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+
+
 class SensorDataOnlySerializer(serializers.ModelSerializer):
 
     class Meta:
