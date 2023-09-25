@@ -11,5 +11,5 @@ class NewAppConfig(AppConfig):
         client = connect_mqtt()  # Изменение значения клиента
         subscribe(client)  # Подписка на MQTT
         client.loop_start()
-
 """
+

@@ -1,3 +1,27 @@
+#!/usr/bin/env python
+import sys
+import os
+import django
+import syslog
+
+
+# Получаем абсолютный путь до текущей директории скрипта
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Получаем абсолютный путь до корневой директории вашего проекта
+project_root = os.path.abspath(os.path.join(current_dir, ".."))  # Поднимаемся на уровень выше
+
+# Добавляем путь к корневой директории в список путей Python
+sys.path.append(project_root)
+
+# Устанавливаем переменную окружения DJANGO_SETTINGS_MODULE
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_scada.settings")
+
+# Загружаем настройки Django
+
+django.setup()
+
+
 from paho.mqtt import client as mqtt_client
 from scada.models import tmp, SensorList, DataTypes, Sensor, SensorArhive
 import random
@@ -12,24 +36,21 @@ ROOT_TOPIC = "my_scada"
 
 broker = 'tldev.ru'
 port = 1883
-username = "myscada"
-password = "12345678"
+username = ""
+password = ""
 topic = ROOT_TOPIC+"/#"
-client_id = f'2023_T-L_scada-{random.randint(1, 1000)}'
+client_id = f'app_T-L_scada-{random.randint(1, 1000)}'
 
 
 client = None
 
-# print("id=", client_id)
-
-
 def connect_mqtt():
-    print(f'вызов соединения client_id= {client_id}')
+    syslog.syslog(f'вызов соединения client_id= {client_id}')
     def on_connect(client, userdata, flags, rc):
         if rc != 0:
-            print("Failed to connect, return code %d\n", rc)
+            syslog.syslog("Failed to connect, return code %d\n", rc)
         else:
-            print("Connected to MQTT Broker!")
+            syslog.syslog("Connected to MQTT Broker!")
 
     # Set Connecting Client ID
     client = mqtt_client.Client(client_id)
@@ -98,6 +119,17 @@ def subscribe(client: mqtt_client):
 def mqtt_start():
     global client  # Declare client as a global variable
     client = connect_mqtt()  # Изменение значения клиента
-    #subscribe(client)  # Подписка на MQTT
-    #client.loop_start()
+    subscribe(client)  # Подписка на MQTT
+    client.loop_forever()
+
+while (1):
+    syslog.syslog("Перезапуск подписки")
+    try:
+        mqtt_start()
+    except KeyboardInterrupt:
+        print("Программа прервана пользователем (Ctrl-C).")
+        break
+    except:
+        syslog.syslog(f"Исключение: {str(e)}\n{traceback_str}")
+    time.sleep(10)
 

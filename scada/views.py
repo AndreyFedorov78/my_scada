@@ -17,7 +17,7 @@ from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
 from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
 from new_app import mqtt
 
-mqtt.mqtt_start()
+#mqtt.mqtt_start()
 
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
@@ -61,8 +61,9 @@ class DevManage(APIView):
             val = request.data['val']
             name = request.data['name']
             topic = f'{mqtt.ROOT_TOPIC}RX/{router}/{id}/{name}'
-            print(topic)
-            mqtt.client.publish(topic, val)
+            client = mqtt.connect_mqtt()
+            client.publish(topic, val)
+            client.disconnect()
             return Response(status=201)
         return Response(status=300)
 

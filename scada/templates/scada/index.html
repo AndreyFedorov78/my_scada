@@ -64,9 +64,12 @@
 
                         <div v-if="item.online" class="online">online</div>
                         <div v-else class="online text-danger alarm">offline {{ item.date }}</div>
-
-                        <input v-on:keypress="load_block=1" v-on:focusout="title_edit(item.id)" v-on:keyup.enter="title_edit(item.id)"
-                               v-on:keyup.esc="load_block=0;load_last()" v-model='item.title'/>
+                        <input
+		                        v-on:keydown="load_block=1"
+		                        v-on:focusout="title_edit(item.id)"
+		                        v-on:keyup.enter="title_edit(item.id)"
+                                v-on:keyup.esc="load_block=0;load_last()"
+		                        v-model='item.title'>
 
                     </h4>
                 </div>
