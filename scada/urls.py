@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from .views import SensorView, SensorDetailView, Index, AllSensors, DevManage, SensorLastDays, tmpView
-from .views import UserWidgets, GetWidgetsList, Connect, SensorDataView
+from .views import UserWidgets, GetWidgetsList, Connect, SensorDataView, HA
 
 urlpatterns = [
     path("sensor/", SensorView.as_view()),
@@ -16,5 +16,7 @@ urlpatterns = [
 
     path("tmp/", tmpView.as_view()),
     path("connect/", Connect.as_view()),
+    path("ha/", HA),
+    path("ha/auth/authorize", HA),
 
 ]

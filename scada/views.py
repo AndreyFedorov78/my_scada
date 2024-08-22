@@ -3,6 +3,7 @@ import hashlib
 import time
 import pytz
 import requests
+from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -377,6 +378,9 @@ class Connect(LoginRequiredMixin, APIView):
         # subscribe=mqtt.client.
         return Response({'connect': answer})
 
+
+def HA(request):
+      return  JsonResponse({"temperature": 30,   "status": "success", "message": "Авторизация успешно подтверждена."})
 
 """
 Спарвочник ответов http :

@@ -76,6 +76,7 @@ def subscribe(client: mqtt_client):
         if not data[3].lstrip('-').isdigit():
             return
 
+
         if not SensorList.objects.filter(id=data[1]).exists():
             # если датчик не найден, создаем его.
             sensor = SensorList()
@@ -90,6 +91,11 @@ def subscribe(client: mqtt_client):
             datatype.subtitle = data[2]
             datatype.title = data[2]
             datatype.save()
+        #print(f"data[2]={data[2]}, data[1]={data[1]}, {type(data[1])}")
+
+
+
+
 
         #Это место сбоило на рабочей базе!!!
         #datatype = DataTypes.objects.get(subtitle=data[2])
@@ -98,8 +104,13 @@ def subscribe(client: mqtt_client):
         arhive = SensorArhive()
         arhive.sensorId = newRecord.sensorId = sensor
         arhive.type = newRecord.type = datatype
+
+
         data[3] = int(data[3])
-        arhive.data =  newRecord.data = data[3]
+        if data[1]=="2320318795431936" and data[2]=="T":
+            data[3] = data[3] - 30
+            #print(f"data[2]={data[2]}, data[1]={data[1]}, {data[3]}")
+        arhive.data = newRecord.data = data[3]
         arhive.save()
         newRecord.save()
         sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
