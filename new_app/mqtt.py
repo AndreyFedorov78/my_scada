@@ -12,8 +12,8 @@ ROOT_TOPIC = "my_scada"
 
 broker = 'tldev.ru'
 port = 1883
-username = "myscada"
-password = "12345678"
+username = ""
+password = ""
 topic = ROOT_TOPIC+"/#"
 client_id = f'2023_T-L_scada-{random.randint(1, 1000)}'
 

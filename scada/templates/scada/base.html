@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="Andrey Fedorov">
+	<title>My scada {% block title %} {% endblock %}</title>
+	<!-- Bootstrap core CSS -->
+	<link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
+	<!-- Favicons -->
+	<meta name="theme-color" content="#7952b3">
+	<link href="/static/css/scada.css" rel="stylesheet">
+
+	{% block head %}{% endblock %}
+</head>
+<body>
+<main class=" ml-sm-auto  px-md-4 ">
+
+<div class="row  p-0 m-0">
+		<!-- Логотип -->
+	<div class="col-sm col-md-2">
+		<img src="/static/img/logo-2.png" style="width: 150px">
+	</div>
+
+	<!-- Меню -->
+	<div class="col-sm-10 text-right align-middle pt-3">
+
+		{% if request.get_full_path != "/" %}
+			<a href="/"><button type="button" class="btn btn-menu btn-sm mr-3">Информация</button></a>
+		{% endif %}
+
+		{% if request.get_full_path != "/settings" %}
+			<a href="/settings"><button type="button" class="btn btn-menu mr-3">Настройки</button></a>
+    {% endif %}
+
+	  	<button type="button" onclick="fetch('/api/logout/').then(respose=> (window.location.href = '/'))" class="btn btn-menu mr-1 ">Выход</button>
+
+
+
+
+	</div>
+
+</div>
+
+
+
+
+
+
+
+	<div>
+
+
+	</div>
+
+
+	{% block content %}{% endblock %}
+
+</main>
+
+
+
+
+    <script src="/static/js/chart.js"></script>
+
+    <script> const csrf_token = "{{csrf_token}}"</script>
+    <script src="/static/js/vue.min.js"></script>
+
+{% block js %} {% endblock %}
+
+
+</body>
+</html>

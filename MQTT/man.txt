@@ -1,8 +1,6 @@
 sudo systemctl daemon-reload
-sudo systemctl start mqtt_scada.service
-sudo systemctl enable mqtt_scada.service
+sudo systemctl start mqtt_script.service
+sudo systemctl enable mqtt_script.service
 
 путь к сревис файлу
 /etc/systemd/system/
-
-просмотр логов

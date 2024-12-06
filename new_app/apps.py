@@ -6,10 +6,10 @@ class NewAppConfig(AppConfig):
 
     def ready(self):
         pass
-"""
-        from .mqtt import connect_mqtt,subscribe
-        client = connect_mqtt()  # Изменение значения клиента
-        subscribe(client)  # Подписка на MQTT
-        client.loop_start()
-"""
+
+        # from .mqtt import connect_mqtt,subscribe
+        #client = connect_mqtt()  # Изменение значения клиента
+        #subscribe(client)  # Подписка на MQTT
+        #client.loop_start()
+
 

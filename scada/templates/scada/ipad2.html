@@ -1,7 +1,7 @@
 {% load static %}
 <!doctype html>
 <html lang="ru">
-
+ 
 
 <head>
     <meta charset="utf-8">
@@ -72,9 +72,13 @@
                     <span class="water-show {% if alarm %}alarm{% endif %}">
                         {{ water }}%
                     </span>
-                    <div style="width: 190px; position: absolute; bottom: 70px; left: 78px;">
+
+                    
+		    
+                    <div style="width: 190px; position: absolute; bottom: 45px; left: 78px;">
                         {% if online %}
-                            <span style="color: #04fc43;"> <h3>online</h3></span>
+                        <span style="color: #04fc43;"> <h3>online<br> 
+			 <b> {{waterCM}}м</b></h3></span>
                         {% else %}
                             <span  > <h3 class="alarm">offline</h3> </span>
                         {% endif %}

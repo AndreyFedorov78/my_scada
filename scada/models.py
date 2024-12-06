@@ -40,8 +40,9 @@ class SensorList(models.Model):
     title = models.CharField('Наименование', blank=False, null=False, max_length=150, default='неизвестнвый датчик')
     sort = models.IntegerField('Индекс Сортировки', blank=False, null=False, default=9999)
     active = models.BooleanField('Включен', blank=False, null=False, default=False)
-    widget = models.ForeignKey(Widget, on_delete=models.CASCADE, blank=True, null=True, default=None)
+    widget = models.ForeignKey(Widget, on_delete=models.CASCADE, blank=True, null=True, default=1)
     date = models.DateTimeField('Создано', auto_now_add=True)
+    archive = models.BooleanField('Хратить историю', default=False)
 
 
     class Meta:

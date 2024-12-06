@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap');
+
+*
+{
+  font-family: 'Poppins', sans-serif;
+}
+
+
+.table > tbody > tr > td {
+     vertical-align: middle;
+}
+html {
+  font-size: 14px;
+}
+
+
+body {
+    background-color: #2f363e;
+}
+
+.card {
+    border-radius: 30px;
+    background-color: #2f363e;
+    align-items: center; /* выравнивание по горизонтали */
+    box-shadow: 25px 25px 75px rgba(0, 0, 0, 0.75),
+    10px 50px 70px rgba(0, 0, 0, 0.25),
+    inset 5px 5px 10px rgba(255, 255, 255, 0.5),
+    inset 5px 5px 20px rgba(0, 0, 0, 0.2),
+    inset -5px -5px 17px rgba(0, 0, 0, 0.75);
+    display: flex;
+    margin: 20px 15px 2px;
+    padding: 2px 20px 30px;
+}
+
+.card-header{
+    width: 100%;
+    color: #04fc43;
+    font-size: 3em;
+    font-weight: 600;
+}
+
+.kolodec {
+    width: 350px;
+    position: relative;
+    opacity: .4;
+}
+
+.water-back {
+    background: #000000;
+    opacity: .3;
+    position: absolute;
+    bottom: 70px;
+    left: 90px;
+    width: 160px;
+    height: 120px;
+}
+
+.water-show {
+    color: #04fc43;
+    font-size: 4em;
+    font-weight: 600;
+    width: 190px;
+    position: absolute;
+    bottom: 100px;
+    left: 78px;
+}
+
+.weather {
+    align-items: top;
+    margin-top: 30px;
+
+}
+
+.pool {
+    align-items: top;
+    margin-top: 30px;
+    color: #fee800;
+    display: flex;
+
+}
+
+
+.pool span:nth-child(1) {
+    font-size: 4em;
+    font-weight: 600;
+}
+
+.weather span:nth-child(2) {
+    font-size: 2em;
+    font-weight: 600;
+    top: -10;
+    position: absolute;
+}
+
+
+
+.weather span {
+    color: #fee800;
+}
+.weather span:nth-child(1) {
+    font-size: 4em;
+    font-weight: 600;
+}
+
+.weather span:nth-child(2) {
+    font-size: 2em;
+    font-weight: 600;
+    top: -10;
+    position: absolute;
+}
+
+.weatherEx {
+
+    margin-top: 15px;
+    opacity: .6;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #fee800;
+}
+
+.weatherEx span {
+    margin: 10px 30px 10px;
+}
+
+.clock {
+     display: flex;
+}
+
+.clock div {
+    margin: 30px 3px 20px;
+    background: #000000;
+    width: 130px;
+    color: #AAAAAA;
+    font-size: 5em;
+    font-weight: 600;
+}
+
+
+.clock div:nth-child(2) {
+    background: #2f363e;
+    width: 20px;
+    animation: animate 1s steps(1) infinite;
+}
+
+.alarm {
+   animation: animate 0.5s steps(1) infinite;
+   color: #fe0000;
+}
+
+
+@keyframes animate
+{
+ 0%
+  {
+    opacity: 1;
+  }
+ 50%
+  {
+    opacity: 0;
+  }
+}
+
+
+/* не плохой красный #fe0000*/
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+
+.container {
+  max-width: 960px;
+}
+
+.pricing-header {
+  max-width: 700px;
+}
+
+.card-deck .card {
+  min-width: 350px;
+
+}
+
+.border-top { border-top: 1px solid #e5e5e5; }
+.border-bottom { border-bottom: 1px solid #e5e5e5; }
+
+.box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }

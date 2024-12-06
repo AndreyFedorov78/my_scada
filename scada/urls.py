@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.urls import path, include
 from .views import SensorView, SensorDetailView, Index, AllSensors, DevManage, SensorLastDays, tmpView
-from .views import UserWidgets, GetWidgetsList, Connect, SensorDataView, HA
+from .views import UserWidgets, GetWidgetsList, Connect, SensorDataView, Index2025, SettingsAPIView
 
 urlpatterns = [
+
     path("sensor/", SensorView.as_view()),
+    path("settings/", SettingsAPIView.as_view()),
     path("getsensor/", GetWidgetsList.as_view()),
     path("mywidgets/", UserWidgets.as_view()),
     path("mywidgets/<int:id>/", UserWidgets.as_view()),
@@ -16,7 +18,5 @@ urlpatterns = [
 
     path("tmp/", tmpView.as_view()),
     path("connect/", Connect.as_view()),
-    path("ha/", HA),
-    path("ha/auth/authorize", HA),
 
 ]

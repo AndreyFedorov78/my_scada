@@ -15,13 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path , include
-from scada.views import Index, OldIpad, Clock, Connect, ButtonTest, Home
+from scada.views import Index, OldIpad, Clock, Connect, ButtonTest, Home, Index2025, SettingsView
 
 #from rest_framework import routers
 #import scada
 
 urlpatterns = [
-    path("", Index.as_view()),
+    path("", Index2025.as_view()),
+    path("2025", Index2025.as_view()),
+    path("settings", SettingsView.as_view()),
     path("ipad", OldIpad.as_view()),
     path("home", Home.as_view()),
     path("connect/", Connect.as_view()),
@@ -30,6 +32,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/',include('rest_framework.urls')),
     path('scada_api/', include('scada.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
-
+    path('accounts/', include('django.contrib.auth.urls'))
 ]

@@ -24,6 +24,13 @@ class SensorSerializer(serializers.ModelSerializer):
         fields = "__all__"
        # fields = ("sensorId", "type", "data", "date")
 
+class SensorListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SensorList
+        depth = 1
+        fields = "__all__"
+       # fields = ("sensorId", "type", "data", "date")
+
 
 class SensorDetailSerializer(serializers.ModelSerializer):
 

@@ -49,10 +49,10 @@ body {
     background: #000000;
     opacity: .3;
     position: absolute;
-    bottom: 70px;
+    bottom: 40px;
     left: 90px;
     width: 160px;
-    height: 120px;
+    height: 150px;
 }
 
 .water-show {

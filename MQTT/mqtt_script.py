@@ -46,14 +46,17 @@ client = None
 
 def connect_mqtt():
     syslog.syslog(f'вызов соединения client_id= {client_id}')
+    print(f'вызов соединения client_id= {client_id}')
     def on_connect(client, userdata, flags, rc):
         if rc != 0:
             syslog.syslog("Failed to connect, return code %d\n", rc)
+            print("Failed to connect, return code %d\n", rc)
         else:
             syslog.syslog("Connected to MQTT Broker!")
+            print("Connected to MQTT Broker!")
 
     # Set Connecting Client ID
-    client = mqtt_client.Client(client_id)
+    client = mqtt_client.Client(mqtt_client.CallbackAPIVersion.VERSION1,client_id)
     client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
@@ -76,7 +79,6 @@ def subscribe(client: mqtt_client):
         if not data[3].lstrip('-').isdigit():
             return
 
-
         if not SensorList.objects.filter(id=data[1]).exists():
             # если датчик не найден, создаем его.
             sensor = SensorList()
@@ -91,11 +93,6 @@ def subscribe(client: mqtt_client):
             datatype.subtitle = data[2]
             datatype.title = data[2]
             datatype.save()
-        #print(f"data[2]={data[2]}, data[1]={data[1]}, {type(data[1])}")
-
-
-
-
 
         #Это место сбоило на рабочей базе!!!
         #datatype = DataTypes.objects.get(subtitle=data[2])
@@ -104,14 +101,14 @@ def subscribe(client: mqtt_client):
         arhive = SensorArhive()
         arhive.sensorId = newRecord.sensorId = sensor
         arhive.type = newRecord.type = datatype
-
-
         data[3] = int(data[3])
         if data[1]=="2320318795431936" and data[2]=="T":
-            data[3] = data[3] - 30
+            data[3] = data[3] - 0
             #print(f"data[2]={data[2]}, data[1]={data[1]}, {data[3]}")
-        arhive.data = newRecord.data = data[3]
-        arhive.save()
+
+        arhive.data =  newRecord.data = data[3]
+        if arhive.sensorId.archive:
+           arhive.save()
         newRecord.save()
         sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
                 type=newRecord.type).exclude(pk=newRecord.pk)[1:]
@@ -135,12 +132,14 @@ def mqtt_start():
 
 while (1):
     syslog.syslog("Перезапуск подписки")
+    print("Перезапуск подписки")
     try:
         mqtt_start()
     except KeyboardInterrupt:
         print("Программа прервана пользователем (Ctrl-C).")
         break
-    except:
-        syslog.syslog(f"Исключение: {str(e)}\n{traceback_str}")
-    time.sleep(10)
+    except Exception as e:
+        syslog.syslog(f"Исключение: {e}") # {str("e"")}\n{traceback_str}")
+        print(f"Исключение: {e}") # {str("e"")}\n{traceback_str}")
 
+    time.sleep(10)

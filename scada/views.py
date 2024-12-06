@@ -3,7 +3,6 @@ import hashlib
 import time
 import pytz
 import requests
-from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -15,7 +14,7 @@ from rest_framework.views import APIView
 from .blynk import Blynk
 from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets, SensorArhive
 from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
-from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
+from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer, SensorListSerializer
 from new_app import mqtt
 
 #mqtt.mqtt_start()
@@ -35,6 +34,22 @@ class Index(LoginRequiredMixin, View):
     def get(request):
         widgets = Widget.objects.all()
         return render(request, 'scada/index.html', {'widgets': widgets})
+
+
+class Index2025(LoginRequiredMixin, View):
+    @staticmethod
+    def get(request):
+        widgets = Widget.objects.all()
+        return render(request, 'scada/index2025.html', {'widgets': widgets})
+
+
+class SettingsView(LoginRequiredMixin, View):
+    @staticmethod
+    def get(request):
+        widgets = Widget.objects.all()
+        return render(request, 'scada/settings.html', {'widgets': widgets})
+
+
 
 
 class Clock(View):
@@ -67,6 +82,24 @@ class DevManage(APIView):
             client.disconnect()
             return Response(status=201)
         return Response(status=300)
+
+
+class SettingsAPIView(APIView):
+    @staticmethod
+    def get(request):
+        sensor = SensorList.objects.all()
+        no_widgets = sensor.filter(widget=None)
+        if len(no_widgets):
+            defaultWidget = Widget.objects.get(id=1)
+        for item in no_widgets:
+            item.widget=defaultWidget
+            item.save()
+        if len(no_widgets):
+            sensor = SensorList.objects.all()
+        sv_serializer = SensorListSerializer(sensor, many=True)
+        return Response(sv_serializer.data)
+
+
 
 
 # class SensorView(LoginRequiredMixin,APIView):
@@ -337,14 +370,19 @@ class OldIpad(View):
     @staticmethod
     def get(request):
         alarm_level = 35
-        kolodez = SensorList.objects.filter(title='Колодец')[0]
-        all_data = Sensor.objects.filter(sensorId=kolodez)[0]
+        kolodez = SensorList.objects.filter(id=1953992294)[0]
+        all_data = Sensor.objects.filter(sensorId=kolodez, type__subtitle='W')[0]
         water = all_data.data
+
+        all_data = Sensor.objects.filter(sensorId=kolodez, type__subtitle='WCM')[0]
+        waterCM = all_data.data
+
         delta = datetime.datetime.today().timestamp() - all_data.date.timestamp()
 
-        pool = SensorList.objects.filter(title='Бассеин')[0]
-        all_data = Sensor.objects.filter(sensorId=pool)[0]
-        pool = all_data.data / 10
+        
+        #pool = SensorList.objects.filter(title='Бассеин')[0]
+        #all_data = Sensor.objects.filter(sensorId=pool)[0]
+        pool = 0
 
         out_sensor = SensorList.objects.filter(title='Улица дача')[0]
         all_data = Sensor.objects.filter(sensorId=out_sensor)
@@ -362,6 +400,7 @@ class OldIpad(View):
             'minute': f"{minute:02}",
             'level': int(water / 100 * 350 + 50),
             'water': water,
+            'waterCM': waterCM/100,
             'online': online,
             'temperature': temperature,
             'pressure': pressure,
@@ -378,9 +417,6 @@ class Connect(LoginRequiredMixin, APIView):
         # subscribe=mqtt.client.
         return Response({'connect': answer})
 
-
-def HA(request):
-      return  JsonResponse({"temperature": 30,   "status": "success", "message": "Авторизация успешно подтверждена."})
 
 """
 Спарвочник ответов http :
