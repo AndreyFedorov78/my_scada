@@ -39,6 +39,14 @@ body {
     font-weight: 600;
 }
 
+
+.plan {
+    background: white;
+    color: #04fc43;
+    border: black solid 2px;
+}
+
+
 .kolodec {
     width: 350px;
     position: relative;
@@ -159,6 +167,8 @@ body {
     opacity: 0;
   }
 }
+
+
 
 
 /* не плохой красный #fe0000*/

@@ -129,3 +129,6 @@ my_scada/__pycache__/__init__.cpython-37.pyc
 my_scada/__pycache__/__init__.cpython-37.pyc
 my_scada/__pycache__/settings.cpython-37.pyc
 my_scada/__pycache__/wsgi.cpython-37.pyc
+.idea/dataSources.xml
+.idea/misc.xml
+/.idea
