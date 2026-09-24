@@ -1,0 +1,96 @@
+{% extends "scada/base.html" %}
+
+{% block  content %}
+
+
+	{% verbatim %}
+
+
+
+	<!-- Блок отображения данных-->
+	<div  id="app"> <!-- оласть приложениея vue -->
+	<div class="app" > <!-- оласть приложениея vue -->
+
+
+		<div class="card-deck row">
+
+			<!-- Окна с виджетами -->
+			<div v-on:dblclick="details(item.id)" class="card" v-for="item in widgets_list">
+				<!--заголовок окна-->
+				<div class="card-header">
+					<h4 class="my-0 font-weight-normal">
+						<div class="close"></div>
+						<div class="control_buttons">
+							<a href="##" v-on:click="delete_widget(item.id)">x</a>
+							<div></div>
+							<a href="##" v-on:click="move_widget(item.id, -1)"> <</a>
+							<div></div>
+							<a href="##" v-on:click="move_widget(item.id, 1)">></a>
+						</div>
+
+						<div v-if="item.online" class="online">online</div>
+						<div v-else class="online text-danger alarm">offline {{ item.date }}</div>
+						<input
+								v-on:keydown="load_block=1"
+								v-on:focusout="title_edit(item.id)"
+								v-on:keyup.enter="title_edit(item.id)"
+								v-on:keyup.esc="load_block=0;load_last()"
+								v-model='item.title'>
+
+					</h4>
+				</div>
+
+				<!--Содержимое -->
+
+				{% endverbatim %} <!-- предаем рендеринг обратно в Django-->
+				{% for widget in widgets %} <!-- идем по всем доступным виджетам-->
+					{% verbatim %}
+					<!-- силами vue показываем тот виджет на который ссылается текущий элемент при рендеренге силами vue -->
+
+					<span v-if="item.sensor.widget.id == {%endverbatim %} {{ widget.id }} {% verbatim %} ">
+
+                                {% endverbatim %} {% include widget.filename %} <!-- вставляем виджет-->
+                            </span>
+				{% endfor %}
+				{% verbatim %}
+
+			</div>
+
+
+		</div>
+	</div>
+
+
+
+
+
+	<div v-show="show_details" class="details_container">
+
+		<div class="details">
+			<a v-on:click="details_clear()" href="##">X</a>
+
+			<h3>{{ detail.title }}</h3>
+			<div class="details_chart" v-for="sensor in detail.sensors">
+				<br>
+				<canvas :id="sensor.type.id"></canvas>
+
+
+				<br><br>
+
+			</div>
+
+
+		</div>
+
+	</div>
+	</div>
+	{% endverbatim %}
+
+
+
+
+
+{% endblock %}
+
+
+{% block js %}  <script src="/static/js/scada.js"></script> {% endblock %}
