@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+import sys
+import os
+import django
+import syslog
+
+
+# Получаем абсолютный путь до текущей директории скрипта
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Получаем абсолютный путь до корневой директории вашего проекта
+project_root = os.path.abspath(os.path.join(current_dir, ".."))  # Поднимаемся на уровень выше
+
+# Добавляем путь к корневой директории в список путей Python
+sys.path.append(project_root)
+
+# Устанавливаем переменную окружения DJANGO_SETTINGS_MODULE
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_scada.settings")
+
+# Загружаем настройки Django
+
+django.setup()
+
+
+from paho.mqtt import client as mqtt_client
+from scada.models import tmp, SensorList, DataTypes, Sensor, SensorArhive
+from django.db import connections
+import random
+import time
+import datetime
+import hashlib
+import pytz
+
+# https://stackoverflow.com/questions/4530069/how-do-i-get-a-value-of-datetime-today-in-python-that-is-timezone-aware
+
+ROOT_TOPIC = "my_scada"
+
+broker = 'tldev.ru'
+port = 1883
+username = ""
+password = ""
+topic = ROOT_TOPIC+"/#"
+client_id = f'app_T-L_scada-{random.randint(1, 1000)}'
+
+
+client = None
+
+def connect_mqtt():
+    syslog.syslog(f'вызов соединения client_id= {client_id}')
+    print(f'вызов соединения client_id= {client_id}')
+    def on_connect(client, userdata, flags, rc):
+        if rc != 0:
+            syslog.syslog("Failed to connect, return code %d\n", rc)
+            print("Failed to connect, return code %d\n", rc)
+        else:
+            syslog.syslog("Connected to MQTT Broker!")
+            print("Connected to MQTT Broker!")
+
+    # Set Connecting Client ID
+    client = mqtt_client.Client(client_id)
+    client.username_pw_set(username, password)
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
+
+
+def subscribe(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        try:
+            msg_body = msg.payload.decode()
+        except:
+            return
+        #print (msg.topic,"   ",msg_body)
+        data = msg.topic.split('/')
+        data.append(msg.payload.decode())  ##!!!!
+        if len(data) < 4:
+            return
+        if not data[1].isdigit():
+            return
+        if not data[3].lstrip('-').isdigit():
+            return
+
+        if not SensorList.objects.filter(id=data[1]).exists():
+            # если датчик не найден, создаем его.
+            sensor = SensorList()
+            sensor.id = data[1]
+            sensor.save()
+        sensor = SensorList.objects.get(id=data[1])
+
+        if not sensor.active:
+            return
+        if not DataTypes.objects.filter(subtitle=data[2]).exists():
+            datatype = DataTypes()
+            datatype.subtitle = data[2]
+            datatype.title = data[2]
+            datatype.save()
+
+        #Это место сбоило на рабочей базе!!!
+        #datatype = DataTypes.objects.get(subtitle=data[2])
+        datatype = DataTypes.objects.filter(subtitle=data[2])[0]
+        newRecord = Sensor()
+        arhive = SensorArhive()
+        arhive.sensorId = newRecord.sensorId = sensor
+        arhive.type = newRecord.type = datatype
+        data[3] = int(data[3])
+        if data[1]=="2320318795431936" and data[2]=="T":
+            data[3] = data[3] - 0
+            #print(f"data[2]={data[2]}, data[1]={data[1]}, {data[3]}")
+
+        arhive.data =  newRecord.data = data[3]
+        if arhive.sensorId.archive:
+           arhive.save()
+        newRecord.save()
+        sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
+                type=newRecord.type).exclude(pk=newRecord.pk)[1:]
+        for item in sensor:
+            item.delete()
+        for x in range(0, 10):  # данные могут поступать одновременно, надо качественно подчистить
+            sensor = SensorArhive.objects.filter(sensorId=newRecord.sensorId).filter(
+                type=newRecord.type).order_by('-date')[:3]
+            if len(sensor) == 3:
+                if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
+                    sensor[1].delete()
+    client.subscribe(topic)
+    client.on_message = on_message
+
+
+def mqtt_start():
+    global client  # Declare client as a global variable
+    client = connect_mqtt()  # Изменение значения клиента
+    subscribe(client)  # Подписка на MQTT
+    client.loop_forever()
+
+while (1):
+    syslog.syslog("Перезапуск подписки")
+    print("Перезапуск подписки")
+    try:
+        mqtt_start()
+    except KeyboardInterrupt:
+        print("Программа прервана пользователем (Ctrl-C).")
+        break
+    except Exception as e:
+        syslog.syslog(f"Исключение: {e}") # {str("e"")}\n{traceback_str}")
+        print(f"Исключение: {e}") # {str("e"")}\n{traceback_str}")
+        # Сбрасываем соединения Django с БД: после обрыва MySQL (OOM, рестарт)
+        # старое соединение остаётся мёртвым и каждая попытка падает с (2013).
+        # close_all() заставит Django открыть новое при следующем запросе.
+        connections.close_all()
+        # Закрываем старый MQTT-клиент, иначе копятся сокеты в CLOSE-WAIT.
+        try:
+            if client is not None:
+                client.disconnect()
+        except Exception:
+            pass
+
+    time.sleep(10)

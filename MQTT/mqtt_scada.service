@@ -1,0 +1,15 @@
+[Unit]
+Description=MQTT Script Service
+After=network.target
+
+[Service]
+ExecStart=/home/andrey/www/my_scada/env/bin/python /home/andrey/www/my_scada/MQTT/mqtt_script.py
+WorkingDirectory=/home/andrey/www/my_scada/MQTT/
+Restart=always
+User=andrey
+Group=andrey
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
