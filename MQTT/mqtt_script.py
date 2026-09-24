@@ -24,6 +24,7 @@ django.setup()
 
 from paho.mqtt import client as mqtt_client
 from scada.models import tmp, SensorList, DataTypes, Sensor, SensorArhive
+from django.db import connections
 import random
 import time
 import datetime
@@ -141,5 +142,15 @@ while (1):
     except Exception as e:
         syslog.syslog(f"Исключение: {e}") # {str("e"")}\n{traceback_str}")
         print(f"Исключение: {e}") # {str("e"")}\n{traceback_str}")
+        # Сбрасываем соединения Django с БД: после обрыва MySQL (OOM, рестарт)
+        # старое соединение остаётся мёртвым и каждая попытка падает с (2013).
+        # close_all() заставит Django открыть новое при следующем запросе.
+        connections.close_all()
+        # Закрываем старый MQTT-клиент, иначе копятся сокеты в CLOSE-WAIT.
+        try:
+            if client is not None:
+                client.disconnect()
+        except Exception:
+            pass
 
     time.sleep(10)
