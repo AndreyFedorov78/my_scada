@@ -1,0 +1,120 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+
+
+<head>
+    <meta charset="utf-8">
+    <!--meta http-equiv="refresh" content="30"-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta http-equiv="refresh" content="3600">
+    <meta name="author" content="Andrey Fedorov">
+    <title>My scada</title>
+    <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#7952b3">
+    <link rel="stylesheet" href={% static '/css/home.css' %}>
+</head>
+<body>
+
+
+<!--body class="" style="" background="/static/img/bg.png"-->
+
+<main class=" " id="app">
+
+
+    <div class="row card-deck mb-3 text-center" style="margin: 0!important;">
+        <div class="card">
+            <div class="card-header">Погода</div>
+            <sapn class="subtitle">Улица</sapn>
+            <div class="weather">
+                <span> [[ out_temp ]] С</span>
+                <span>o</span>
+            </div>
+
+
+            <sapn class="subtitle">Квартира</sapn>
+
+            <div class="weather">
+                 <span>
+                              [[ temp]]  С</span>
+                <span> o</span>
+            </div>
+            <div class="weatherEx">
+
+                <span> Влажность: [[ humidity ]] %</span> <br>
+                <span> CO<span class="low">2 </span>: [[ CO ]] ppm</span>
+            </div>
+
+            <div class="clock">
+
+                <div>[[hours | twoDigits]]</div>
+                <div>:</div>
+                <div>[[ minutes | twoDigits ]]</div>
+
+            </div>
+
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-header">Вентиляция</div>
+
+
+                <div class="vent_area">
+                    <div class="vent_speed">
+                        <ul>
+                            <li><img v-if="!vent_speed" src="/static/img/fan-gif-off.gif"
+                                     width="30">
+                                <img v-else src="/static/img/fan-gif.gif" width="30"></li>
+                            <li v-on:click="vent_speed=3; devManage('R-100',3)"
+                                v-bind:class="{'grey-background': vent_speed <3 }"></li>
+                            <li v-on:click="vent_speed=2; devManage('R-100',2)"
+                                v-bind:class="{'grey-background': vent_speed <2 }"></li>
+                            <li v-on:click="vent_speed=1; devManage('R-100',1)"
+                                v-bind:class="{'grey-background': vent_speed <1}"></li>
+                            <li v-on:click="vent_speed=0; devManage('R-100',0)"
+                                v-bind:class="{'text-danger':!vent_speed}">OFF
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="vent_heat">
+                        <ul>
+                            <li><img v-if="!vent_heat" src="/static/img/heat-off.png" width="30">
+                                <img v-else src="/static/img/heat.png" width="30">
+                            <li v-on:click="vent_heat=5; devManage('R-206',5)"
+                                v-bind:class="{'grey-background': vent_heat <5 }"></li>
+                            <li v-on:click="vent_heat=4; devManage('R-206',4)"
+                                v-bind:class="{'grey-background': vent_heat <4 }"></li>
+                            <li v-on:click="vent_heat=3; devManage('R-206',3)"
+                                v-bind:class="{'grey-background': vent_heat <3 }"></li>
+                            <li v-on:click="vent_heat=2; devManage('R-206',2)"
+                                v-bind:class="{'grey-background': vent_heat <2 }"></li>
+                            <li v-on:click="vent_heat=1; devManage('R-206',1)"
+                                v-bind:class="{'grey-background': vent_heat <1}"></li>
+                            <li v-on:click="vent_heat=0; devManage('R-206',0)"
+                                v-bind:class="{'text-danger':!vent_heat}">OFF
+                            </li>
+                        </ul>
+
+                    </div>
+                </div>
+
+            </div>
+
+    </div>
+
+
+</main>
+
+
+<script src="/static/js/chart.js"></script>
+<script> const csrf_token = "{{csrf_token}}"</script>
+<script src="/static/js/vue.min.js"></script>
+<script src="/static/js/home.js"></script>
+
+
+</body>
+</html>

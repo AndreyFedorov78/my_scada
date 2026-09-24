@@ -118,14 +118,19 @@ media/
 # Ignore Django Migrations in Development if you are working on team
 
 **/migrations/**
-<<<<<<< HEAD
-**/migrations
-=======
 **/migrations/
->>>>>>> cc402f7094ab4305833059bcdf882bc94afce1b8
 **/migrations/__init__.py
 *.pyc
 my_scada/__pycache__/__init__.cpython-37.pyc
 my_scada/__pycache__/__init__.cpython-37.pyc
 my_scada/__pycache__/settings.cpython-37.pyc
 my_scada/__pycache__/wsgi.cpython-37.pyc
+
+# Локальное/мусор (добавлено 2026-09-24)
+*~
+._*
+.idea/
+sqlite3
+sqlite3-copy
+static/123
+my_scada/local_settings.py

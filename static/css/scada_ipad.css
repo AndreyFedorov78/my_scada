@@ -19,6 +19,7 @@ body {
 }
 
 .card {
+        min-width: 350px!important;
     border-radius: 30px;
     background-color: #2f363e;
     align-items: center; /* выравнивание по горизонтали */
@@ -35,7 +36,7 @@ body {
 .card-header{
     width: 100%;
     color: #04fc43;
-    font-size: 3em;
+    font-size: 1.2em;
     font-weight: 600;
 }
 
@@ -49,10 +50,10 @@ body {
     background: #000000;
     opacity: .3;
     position: absolute;
-    bottom: 70px;
+    bottom: 40px;
     left: 90px;
     width: 160px;
-    height: 120px;
+    height: 150px;
 }
 
 .water-show {
@@ -67,7 +68,8 @@ body {
 
 .weather {
     align-items: top;
-    margin-top: 30px;
+    margin-top: 10px;
+    margin-bottom: 30px;
 
 }
 
@@ -128,10 +130,11 @@ body {
 
 .clock div {
     margin: 30px 3px 20px;
+    padding:10px;
     background: #000000;
-    width: 130px;
+    /*width: 3em;*/
     color: #AAAAAA;
-    font-size: 5em;
+    font-size: 1em;
     font-weight: 600;
 }
 

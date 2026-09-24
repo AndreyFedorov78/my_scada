@@ -47,7 +47,7 @@ function sleep(ms) {
 new Vue({
     el: '#app',
     data: {
-        pos : 'position: fixed',
+        pos: 'position: fixed',
         widgets_list: [],   //
         widgets_new: [],   //
         vent: [],  // данные венустанвки
@@ -58,14 +58,15 @@ new Vue({
             title: "",
             sensors: [],
 
-        }
+        },
+        load_block: 0,
 
 
     },
     methods: {
         async show_charts(id, dat, type) {
             while (null == document.getElementById(id)) {
-                console.log(id);
+
             }
             const ctx = document.getElementById(id).getContext('2d');
             let yArr = []
@@ -155,7 +156,7 @@ new Vue({
 
         details(id) {
 
-            console.log(id)
+
             this.show_details = true
             let data = search_by_id(id, this.widgets_list)
             this.detail.title = data.title
@@ -170,26 +171,23 @@ new Vue({
                 })
             }
 
-/*
-            for (let i = 0; i < data.data.length; i++) {
-                this.detail.sensors.push(data.data[i])
+            /*
+                        for (let i = 0; i < data.data.length; i++) {
+                            this.detail.sensors.push(data.data[i])
 
 
-                fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
-                    return response.json()
-                }).then((dat) => {
-                    setTimeout(() => {
-                        console.log("1:",data.data[i].type.id)
-                        this.detail.sensors[this.detail.sensors.length - 1].type.id += "Y"
-                        console.log("2:",data.data[i].type.id)
-                         //this.show_charts(data.data[i].type.id , dat, data.data[i].type)
-                    }, 50)
-                })
+                            fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
+                                return response.json()
+                            }).then((dat) => {
+                                setTimeout(() => {
+                                    console.log("1:",data.data[i].type.id)
+                                    this.detail.sensors[this.detail.sensors.length - 1].type.id += "Y"
+                                    console.log("2:",data.data[i].type.id)
+                                     //this.show_charts(data.data[i].type.id , dat, data.data[i].type)
+                                }, 50)
+                            })
 
-            } */
-
-
-
+                        } */
 
 
         },
@@ -208,7 +206,7 @@ new Vue({
         },
 
         title_edit(id) {
-            fetch_post('/scada_api/mywidgets/' + id + '/', {'title': search_by_id(id, this.widgets_list).title})
+            fetch_post('/scada_api/mywidgets/' + id + '/', {'title': search_by_id(id, this.widgets_list).title}).then(this.load_block = 0);
 
         },
 
@@ -221,6 +219,14 @@ new Vue({
             };
             await fetch_post('/scada_api/devmanage/', toSend)
             let index = item.data.findIndex(obj => obj.type.subtitle === name)
+            if (name[0] == 'C' && name.length > 2) {
+                let new_name = 'C-0';
+
+                index = item.data.findIndex(obj => obj.type.subtitle === new_name)
+                val = item.data[index].data ^ (1 << (name[2] / 1))
+
+            }
+
             item.data[index].data = val;
             index = this.widgets_list.findIndex(obj => obj.id === item.id)
             this.widgets_list[index] = item;
@@ -270,7 +276,7 @@ new Vue({
 
                     }
 
-                    //console.log(widgets_list[i])
+
                 }
                 this.widgets_list = widgets_list;
 
@@ -288,9 +294,14 @@ new Vue({
 
         // Получение списка виджетов
         async load_widget_new() {
+
+
             await fetch_post('/scada_api/getsensor/').then((result) => {
                 return result.json()
-            }).then((result) => this.widgets_new = result)
+            }).then((result) => {
+                this.widgets_new = result;
+            })
+
         },
 
         mb_element(item, j) {
@@ -300,12 +311,16 @@ new Vue({
 
         // Получение списка виджетов
 
-        async load_last() {  // чтение всех данных
+        async load_last() {
+            // чтение всех данных
             /* fetch('/scada_api/vent/').then((response) => {
                  return response.json()
              }).then((data) => {
                  this.vent = data;
              });*/
+            if (this.load_block) {
+                return;
+            }
             await this.load_widget_list(); // получаем перечень виджетов
             await this.load_widget_new();
 
@@ -317,7 +332,7 @@ new Vue({
 
         setInterval(function () { // обновляем данные каждые 20 секунд
             this.load_last()
-        }.bind(this), 5000);
+        }.bind(this), 1000);
 
 
     }

@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -31,6 +30,7 @@ ALLOWED_HOSTS = ['*', '192.168.1.44', '192.168.2.200', '127.0.0.1', 'scada.fedor
 # Application definition
 
 INSTALLED_APPS = [
+    'new_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'scada',
-    'new_app'
+
 ]
 
 MIDDLEWARE = [
@@ -81,11 +81,29 @@ TEMPLATES = [
 WSGI_APPLICATION = 'my_scada.wsgi.application'
 
 
+# Пароль БД хранится в my_scada/local_settings.py (в .gitignore, не коммитится)
+try:
+    from .local_settings import DB_PASSWORD
+except ImportError:
+    DB_PASSWORD = ''
+
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+        'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+
+        'ENGINE': 'django.db.backends.mysql',
+        #'NAME': 'tsn',
+        'NAME': 'my_scada',
+        'USER': 'user',
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
+    },
+    'default_old': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
@@ -154,9 +172,6 @@ LOGGING = {
             'filename': os.path.join(BASE_DIR, 'logs/scada_errors.log'),
             'maxBytes': 1024 * 1024 * 15,  # 15MB
             'backupCount': 10,
-
-
         },
     },
-
 }

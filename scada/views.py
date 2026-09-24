@@ -17,6 +17,7 @@ from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
 from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
 from new_app import mqtt
 
+#mqtt.mqtt_start()
 
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
@@ -60,8 +61,9 @@ class DevManage(APIView):
             val = request.data['val']
             name = request.data['name']
             topic = f'{mqtt.ROOT_TOPIC}RX/{router}/{id}/{name}'
-            print(topic)
-            mqtt.client.publish(topic, val)
+            client = mqtt.connect_mqtt()
+            client.publish(topic, val)
+            client.disconnect()
             return Response(status=201)
         return Response(status=300)
 
@@ -97,6 +99,21 @@ class SensorDetailView(LoginRequiredMixin, APIView):
         sensor = Sensor.objects.get(id=pk)
         serializer = SensorDetailSerializer(sensor)
         return Response(serializer.data)
+
+class SensorDataView(LoginRequiredMixin, APIView):
+    @staticmethod
+    def post(request, pk, data_type):
+        sensor = Sensor.objects.filter(sensorId=pk, type__subtitle=data_type).order_by('-date')
+        if len(sensor) < 1:
+            return Response(None)
+        sensor = sensor[0]
+        serializer = SensorDetailSerializer(sensor)
+        return Response(serializer.data)
+
+
+
+
+
 
 
 class AllSensors(LoginRequiredMixin, APIView):
@@ -213,6 +230,7 @@ class UserWidgets(LoginRequiredMixin, APIView):
 
     @staticmethod
     def post(request, id=None):
+
         if id is None:
             all_widgets = MyWidgets.objects.filter(userId_id=request.user).order_by('sort')
             serializer = MyWidgetsSerializer(all_widgets, many=True)
@@ -299,27 +317,50 @@ class GetWidgetsList(LoginRequiredMixin, APIView):
         my_sensors = MyWidgets.objects.filter(userId=request.user).values('sensor')
         new_sensors = SensorList.objects.exclude(id__in=my_sensors).filter(active=True)
         result = GetWidgetsListSerializer(new_sensors, many=True).data
+        # так как java не работает по умолчанию с 64разрядными целыми
+        # переодим id в строку
+        for item in result:
+            item['id']=f"{item['id']}"
         return Response(result)
+
+
+class Home(LoginRequiredMixin, View):
+    @staticmethod
+    def get(request):
+        data = {}
+        return render(request, 'scada/home.html', data)
+
 
 
 class OldIpad(View):
     @staticmethod
     def get(request):
         alarm_level = 35
-        kolodez = SensorList.objects.filter(title='Колодец')[0]
-        all_data = Sensor.objects.filter(sensorId=kolodez)[0]
+        kolodez = SensorList.objects.filter(id=1953992294)[0]
+        all_data = Sensor.objects.filter(sensorId=kolodez, type__subtitle='W')[0]
         water = all_data.data
+
+        all_data = Sensor.objects.filter(sensorId=kolodez, type__subtitle='WCM')[0]
+        waterCM = all_data.data
+
         delta = datetime.datetime.today().timestamp() - all_data.date.timestamp()
 
-        pool = SensorList.objects.filter(title='Бассеин')[0]
-        all_data = Sensor.objects.filter(sensorId=pool)[0]
-        pool = all_data.data / 10
+        
+        #pool = SensorList.objects.filter(title='Бассеин')[0]
+        #all_data = Sensor.objects.filter(sensorId=pool)[0]
+        pool = 0
 
         out_sensor = SensorList.objects.filter(title='Улица дача')[0]
         all_data = Sensor.objects.filter(sensorId=out_sensor)
         temperature = (all_data.filter(type__title="Температура")[0].data) / 10
-        pressure = all_data.filter(type__title="Давление")[0].data
-        humidity = all_data.filter(type__title="Влажность")[0].data / 10
+
+        home_sensor = SensorList.objects.filter(title='Гостинная дача')[0]
+        all_data = Sensor.objects.filter(sensorId=home_sensor)
+        temperature2 = (all_data.filter(type__title="Температура")[0].data) / 10
+
+
+        pressure = "" # all_data.filter(type__title="Давление")[0].data
+        humidity = "" # all_data.filter(type__title="Влажность")[0].data / 10
         hour = datetime.datetime.now(pytz.timezone('Europe/Moscow')).hour
         minute = datetime.datetime.now(pytz.timezone('Europe/Moscow')).minute
 
@@ -331,8 +372,10 @@ class OldIpad(View):
             'minute': f"{minute:02}",
             'level': int(water / 100 * 350 + 50),
             'water': water,
+            'waterCM': waterCM/100,
             'online': online,
             'temperature': temperature,
+            'temperature2': temperature2,
             'pressure': pressure,
             'humidity': humidity
         }

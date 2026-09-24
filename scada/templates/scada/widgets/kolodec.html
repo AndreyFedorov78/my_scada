@@ -13,10 +13,10 @@
     <span class="water-show">
        {{ item.data[0].data }}{{ item.data[0].type.units }}
        </span>
-    <div style="width: 190px; position: absolute; bottom: 70px; left: 78px;">
-
-        <span v-if="item.online" style="color: #04fc43;"> <h3>online</h3></span>
-        <span v-else> <h3 class="alarm">offline</h3> </span>
+    <div style="width: 190px; position: absolute; bottom: 75px; left: 78px;">
+        <span  style="color: #04fc43;"><b>{{item.data[1].data/100}} м</b> </span><br>
+        <span v-if="item.online" style="color: #04fc43;"> <b>online</b></span>
+        <span v-else> <b class="alarm">offline</b> </span>
     </div>
         </span>
     <span v-else> <h1>Нет данных</h1></span>
