@@ -1,0 +1,16 @@
+[Unit]
+Description=Vent auto (CO2) for my_scada
+After=network.target mosquitto.service mysql.service
+
+[Service]
+ExecStart=/home/andrey/www/my_scada/env/bin/python /home/andrey/www/my_scada/MQTT/vent_auto.py
+WorkingDirectory=/home/andrey/www/my_scada/MQTT/
+Restart=always
+RestartSec=30
+User=andrey
+Group=andrey
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

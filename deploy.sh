@@ -30,4 +30,9 @@ $PY manage.py migrate --noinput
 # Статику отдаёт nginx прямо из static/ репозитория — collectstatic не нужен.
 sudo -n systemctl restart gunicorn_scada mqtt_scada
 
+# Автоматика вентиляции по CO2 (MQTT/vent_auto.py) — если юнит уже установлен
+if systemctl list-unit-files vent_scada.service --no-legend 2>/dev/null | grep -q vent_scada; then
+    sudo -n systemctl restart vent_scada
+fi
+
 echo "=== $(date '+%F %T') deploy done -> $(git rev-parse --short HEAD) ==="
