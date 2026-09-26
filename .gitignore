@@ -1,11 +1,8 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/*
-__*
+__pycache__/
 *.py[cod]
 *$py.class
 db.sqlite3
-scada/migrations/*
-scada/migrations/
 scada/__pycache__/*
 scada/__pycache__/
 my_scada/__pycache__/
@@ -115,11 +112,7 @@ media/
 *.db
 *.pid
 
-# Ignore Django Migrations in Development if you are working on team
-
-**/migrations/**
-**/migrations/
-**/migrations/__init__.py
+# Миграции храним в git (сервер — источник истины, синхронизировано 2026-09-26)
 *.pyc
 my_scada/__pycache__/__init__.cpython-37.pyc
 my_scada/__pycache__/__init__.cpython-37.pyc
@@ -134,3 +127,6 @@ sqlite3
 sqlite3-copy
 static/123
 my_scada/local_settings.py
+
+# Автодеплой
+deploy.log
