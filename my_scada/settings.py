@@ -87,6 +87,13 @@ try:
 except ImportError:
     DB_PASSWORD = ''
 
+# Хост БД: на сервере localhost, дома — MySQL в виртуалке Multipass
+# (DB_HOST = '192.168.2.2' в local_settings.py или переменной окружения)
+try:
+    from .local_settings import DB_HOST
+except ImportError:
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -100,7 +107,7 @@ DATABASES = {
         'NAME': 'my_scada',
         'USER': 'user',
         'PASSWORD': DB_PASSWORD,
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'HOST': DB_HOST,
         'PORT': '3306',
     },
     'default_old': {
