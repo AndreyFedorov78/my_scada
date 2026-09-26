@@ -4,13 +4,13 @@
 Правила (время московское):
   23:30–10:00  — скорость 1;
   10:00–23:00  — CO2 в любой комнате > 900 ppm → скорость 3, у всех < 700 → скорость 1,
-                 700–900 — держим прежнюю (гистерезис);
-  23:00–23:30  — держим прежнюю.
+                 700–900 — скорость не меняем (гистерезис);
+  23:00–23:30  — автоматика ничего не делает.
 Учитываются только CO2_SENSORS (Гостиная и спальня). Датчик, не выходивший на связь больше часа, не учитывается.
 
-Ручное переключение не учитывается: каждую минуту фактическая скорость (R-100)
-сверяется с нужной, при расхождении команда отправляется снова.
-Нужная скорость запоминается: в полосе 700–900 и в окне 23:00–23:30 держим последнюю.
+Команда отправляется только при смене нужной скорости (переход порога, наступление ночи),
+поэтому ручное переключение с сайта не перебивается каждую минуту. Если устройство не
+подтвердило команду (R-100 не стал нужным), повторяем до MAX_ATTEMPTS раз.
 После переключения вентиляция до минуты отдаёт старые значения регистров, поэтому для
 подтверждения берём только показания, пришедшие позже STALE_AFTER_SEND после команды.
 """
@@ -47,7 +47,7 @@ BROKER = 'localhost'
 LOOP_SECONDS = 60
 STALE_AFTER_SEND = datetime.timedelta(seconds=70)   # до этого R-100 может быть старым
 RETRY_AFTER = datetime.timedelta(minutes=3)
-FACT_MAX_AGE = datetime.timedelta(minutes=5)       # старше — считаем факт неизвестным
+MAX_ATTEMPTS = 3
 MSK = pytz.timezone('Europe/Moscow')
 
 
@@ -96,8 +96,10 @@ def send_speed(speed):
 
 
 def main():
-    target = None        # скорость, которую держит автоматика
-    sent_at = None       # когда последний раз отправляли команду
+    target = None        # последняя скорость, которую выставила автоматика
+    sent_at = None
+    attempts = 0
+    confirmed = True
     log("vent_auto запущен")
     while True:
         try:
@@ -105,18 +107,22 @@ def main():
             co2 = fresh_co2(now)
             desired = decide(now.astimezone(MSK).time(), list(co2.values()))
             if desired is not None and desired != target:
-                log(f"CO2 {co2 or '—'} → держим скорость {desired} (была {target})")
-                target, sent_at = desired, None
-            if target is not None and (sent_at is None or now - sent_at >= STALE_AFTER_SEND):
-                # после команды смотрим только значения, пришедшие позже STALE_AFTER_SEND
-                since = sent_at + STALE_AFTER_SEND if sent_at else now - FACT_MAX_AGE
-                actual = current_speed(since=since)
-                if actual is None and sent_at is not None and now - sent_at < RETRY_AFTER:
-                    pass  # свежего значения ещё нет — ждём
-                elif actual != target:
-                    log(f"факт {actual} ≠ {target} → команда скорость {target}")
-                    send_speed(target)
-                    sent_at = now
+                log(f"CO2 {co2 or '—'} → скорость {desired} (была цель {target}, факт {current_speed()})")
+                send_speed(desired)
+                target, sent_at, attempts, confirmed = desired, now, 1, False
+            elif not confirmed:
+                if current_speed(since=sent_at + STALE_AFTER_SEND) == target:
+                    confirmed = True
+                    log(f"устройство подтвердило скорость {target}")
+                elif now - sent_at >= RETRY_AFTER:
+                    if attempts < MAX_ATTEMPTS:
+                        attempts += 1
+                        log(f"нет подтверждения, повтор {attempts}: скорость {target}")
+                        send_speed(target)
+                        sent_at = now
+                    else:
+                        confirmed = True
+                        log(f"устройство не подтвердило скорость {target} за {MAX_ATTEMPTS} попытки")
         except Exception as e:
             log(f"Исключение: {e}")
             connections.close_all()
