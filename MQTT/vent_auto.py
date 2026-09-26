@@ -11,6 +11,8 @@
 Команда отправляется только при смене нужной скорости (переход порога, наступление ночи),
 поэтому ручное переключение с сайта не перебивается каждую минуту. Если устройство не
 подтвердило команду (R-100 не стал нужным), повторяем до MAX_ATTEMPTS раз.
+После переключения вентиляция до минуты отдаёт старые значения регистров, поэтому для
+подтверждения берём только показания, пришедшие позже STALE_AFTER_SEND после команды.
 """
 import sys
 import os
@@ -43,6 +45,7 @@ HIGH_SPEED = 3
 LOW_SPEED = 1
 BROKER = 'localhost'
 LOOP_SECONDS = 60
+STALE_AFTER_SEND = datetime.timedelta(seconds=70)   # до этого R-100 может быть старым
 RETRY_AFTER = datetime.timedelta(minutes=3)
 MAX_ATTEMPTS = 3
 MSK = pytz.timezone('Europe/Moscow')
@@ -77,9 +80,12 @@ def fresh_co2(now):
     return latest
 
 
-def current_speed():
-    row = (Sensor.objects.filter(sensorId_id=VENT_ID, type__subtitle=SPEED_PARAM)
-           .order_by('-date').first())
+def current_speed(since=None):
+    """Последнее значение R-100; с since — только пришедшее не раньше since (иначе None)."""
+    rows = Sensor.objects.filter(sensorId_id=VENT_ID, type__subtitle=SPEED_PARAM)
+    if since is not None:
+        rows = rows.filter(date__gte=since)
+    row = rows.order_by('-date').first()
     return row.data if row else None
 
 
@@ -105,7 +111,7 @@ def main():
                 send_speed(desired)
                 target, sent_at, attempts, confirmed = desired, now, 1, False
             elif not confirmed:
-                if current_speed() == target:
+                if current_speed(since=sent_at + STALE_AFTER_SEND) == target:
                     confirmed = True
                     log(f"устройство подтвердило скорость {target}")
                 elif now - sent_at >= RETRY_AFTER:
