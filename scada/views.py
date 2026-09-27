@@ -14,6 +14,10 @@ from new_app import mqtt
 
 #mqtt.mqtt_start()
 
+# датчик считается оффлайн, если от него нет данных дольше этого времени, с
+OFFLINE_AFTER = 30 * 60
+
+
 class ButtonTest(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
@@ -147,7 +151,7 @@ class UserWidgets(LoginRequiredMixin, APIView):
                 if values.get(sensor_id):
                     last = max(date for _, date in values[sensor_id].values())
                     local = timezone.localtime(last)
-                    if (now - last).total_seconds() > 600:
+                    if (now - last).total_seconds() > OFFLINE_AFTER:
                         i['online'] = False
                     if (now - last).total_seconds() > 24 * 60 * 60:
                         i['date'] = f"{local.day}/{local.month}/{local.year}"
@@ -259,7 +263,7 @@ class OldIpad(View):
         hour = datetime.datetime.now(pytz.timezone('Europe/Moscow')).hour
         minute = datetime.datetime.now(pytz.timezone('Europe/Moscow')).minute
 
-        online = (delta < 600)
+        online = (delta < OFFLINE_AFTER)
         data = {
             'alarm': water < alarm_level,
             'pool': pool,
