@@ -84,14 +84,14 @@ class Values(LoginRequiredMixin, APIView):
     Структуру (названия, типы, порядок) фронт берёт из mywidgets/ при загрузке и изменениях."""
     @staticmethod
     def get(request):
-        sensor_ids = MyWidgets.objects.filter(userId=request.user).values_list('sensor_id', flat=True)
-        values = current.get_many(set(sensor_ids))
-        # id датчиков 64-битные — ключами-строками, чтобы JS не терял точность
+        widgets = dict(MyWidgets.objects.filter(userId=request.user).values_list('id', 'sensor_id'))
+        values = current.get_many(set(widgets.values()))
+        # ключ — id виджета: id датчиков 64-битные, в JS они теряют точность
         return Response({
             'now': timezone.now(),
             'offline_after': OFFLINE_AFTER,
-            'values': {str(sensor_id): {subtitle: [value, date] for subtitle, (value, date) in fields.items()}
-                       for sensor_id, fields in values.items()},
+            'values': {widget_id: {subtitle: [value, date] for subtitle, (value, date) in values[sensor_id].items()}
+                       for widget_id, sensor_id in widgets.items()},
         })
 
 

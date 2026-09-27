@@ -162,7 +162,7 @@ new Vue({
             const server_now = Date.parse(values.now)
             let need_layout = false
             for (const item of this.widgets_list) {
-                const fields = values.values[String(item.sensor.id)] || {}
+                const fields = values.values[item.id] || {}
                 let last = 0
                 for (const sensor of item.data) {
                     if (!sensor.type) continue  // показание неизвестного типа — без subtitle
