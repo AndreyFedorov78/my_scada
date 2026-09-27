@@ -490,3 +490,12 @@ body {
 }
 
 
+
+/* перенос виджетов мышкой */
+.card[draggable="true"] {
+    cursor: grab;
+}
+
+.card.dragging {
+    opacity: 0.4;
+}

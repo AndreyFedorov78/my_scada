@@ -121,6 +121,16 @@ class UserWidgets(LoginRequiredMixin, APIView):
     @staticmethod
     def post(request, id=None):
 
+        order = request.data.get('order') if id is None else None
+        if order is not None:  # новый порядок виджетов после перетаскивания мышкой
+            widgets = {w.id: w for w in MyWidgets.objects.filter(userId=request.user, id__in=order)}
+            for sort, widget_id in enumerate(order):
+                widget = widgets.get(int(widget_id))
+                if widget is not None:
+                    widget.sort = sort
+            MyWidgets.objects.bulk_update(widgets.values(), ['sort'])
+            return Response(status=201)
+
         if id is None:
             all_widgets = MyWidgets.objects.filter(userId_id=request.user).select_related('sensor').order_by('sort')
             serializer = MyWidgetsSerializer(all_widgets, many=True)
@@ -156,9 +166,9 @@ class UserWidgets(LoginRequiredMixin, APIView):
                 return Response(status=201)
             object1 = MyWidgets.objects.get(pk=id)
             if 1 == step:
-                object2 = MyWidgets.objects.filter(sort__gt=object1.sort).order_by('sort')
+                object2 = MyWidgets.objects.filter(userId=request.user, sort__gt=object1.sort).order_by('sort')
             else:
-                object2 = MyWidgets.objects.filter(sort__lt=object1.sort).order_by('-sort')
+                object2 = MyWidgets.objects.filter(userId=request.user, sort__lt=object1.sort).order_by('-sort')
             if len(object2) == 0:
                 return Response(status=201)
             object2 = object2[0]

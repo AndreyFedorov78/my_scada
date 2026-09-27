@@ -49,7 +49,13 @@
         <div class="card-deck row">
 
             <!-- Окна с виджетами -->
-            <div v-on:dblclick="details(item.id)" class="card" v-for="item in widgets_list">
+            <div v-on:dblclick="details(item.id)" class="card" v-for="item in widgets_list" :key="item.id"
+                 draggable="true" :class="{dragging: drag_id == item.id}"
+                 v-on:mousedown="drag_from_input = $event.target.tagName == 'INPUT'"
+                 v-on:dragstart="drag_start(item.id, $event)"
+                 v-on:dragover.prevent="drag_over(item.id)"
+                 v-on:drop.prevent="drag_end()"
+                 v-on:dragend="drag_end()">
                 <!--заголовок окна-->
                 <div class="card-header">
                     <h4 class="my-0 font-weight-normal">

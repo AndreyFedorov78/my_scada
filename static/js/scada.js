@@ -32,7 +32,7 @@ async function fetch_put(url) {  // функция post запросов
 }
 
 function search_by_id(id, data) {
-    for (i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
         if (data[i].id == id) return data[i]
     }
     return null
@@ -60,15 +60,20 @@ new Vue({
 
         },
         load_block: 0,
+        loading: false,     // идёт опрос — новый не запускаем, чтобы запросы не копились
+        drag_id: null,      // перетаскиваемый мышкой виджет
+        drag_moved: false,  // порядок за время перетаскивания изменился
+        drag_last: null,    // с каким виджетом только что поменялись местами
+        drag_from_input: false,  // нажали в поле названия — это выделение текста, а не перенос
 
 
     },
     methods: {
         async show_charts(id, dat, type) {
-            while (null == document.getElementById(id)) {
-
-            }
-            const ctx = document.getElementById(id).getContext('2d');
+            await this.$nextTick()
+            const canvas = document.getElementById(id)
+            if (!canvas || !this.show_details) return   // окно уже закрыли
+            const ctx = canvas.getContext('2d');
             let yArr = []
             let xArr = []
             for (let i = 0; i < dat.length; i++) {
@@ -131,7 +136,7 @@ new Vue({
                 }
             }
 
-            new Chart(ctx, {
+            this.charts.push(new Chart(ctx, {
                 type: 'line',
                 fill: false,
                 data: {
@@ -150,7 +155,7 @@ new Vue({
                     }]
                 },
                 options: options,
-            });
+            }));
         },
 
 
@@ -165,9 +170,7 @@ new Vue({
                 fetch('scada_api/sensor_last_days/' + data.data[i].sensorId.id + '/' + data.data[i].type.id + '/1').then((response) => {
                     return response.json()
                 }).then((dat) => {
-                    setTimeout(() => {
-                        this.show_charts(data.data[i].type.id, dat, data.data[i].type)
-                    }, 50)
+                    this.show_charts(data.data[i].type.id, dat, data.data[i].type)
                 })
             }
 
@@ -193,6 +196,8 @@ new Vue({
         },
 
         details_clear() {
+            this.charts.forEach(chart => chart.destroy())   // иначе Chart.js держит canvas и данные в памяти
+            this.charts = []
             this.show_details = false
             this.detail.title = ""
             this.detail.sensors = []
@@ -240,14 +245,55 @@ new Vue({
 
         async delete_widget(id) {
             await fetch_delete('/scada_api/mywidgets/' + id + '/')
-            this.load_last()
+            await Promise.all([this.load_last(), this.load_widget_new()])
 
         },
 
         async add_widget(id) {
             await fetch_put('/scada_api/mywidgets/' + id + '/')
-            this.load_last()
+            await Promise.all([this.load_last(), this.load_widget_new()])
 
+        },
+
+        // перенос виджетов мышкой
+        drag_start(id, event) {
+            if (this.drag_from_input) {
+                event.preventDefault()
+                return
+            }
+            event.dataTransfer.effectAllowed = 'move'
+            event.dataTransfer.setData('text/plain', id)  // без данных Firefox не начинает перенос
+            this.drag_id = id
+            this.drag_moved = false
+            this.drag_last = null
+            this.load_block = 1  // опрос не должен затирать порядок, пока тащим
+        },
+
+        drag_over(id) {
+            if (this.drag_id === null) return
+            // карточки разного размера: после обмена соседняя может остаться под курсором —
+            // не меняемся с ней снова, пока курсор не уйдёт на другую карточку
+            if (id == this.drag_id || id == this.drag_last) {
+                if (id == this.drag_id) this.drag_last = null
+                return
+            }
+            const from = this.widgets_list.findIndex(obj => obj.id == this.drag_id)
+            const to = this.widgets_list.findIndex(obj => obj.id == id)
+            if (from < 0 || to < 0) return
+            const [moved] = this.widgets_list.splice(from, 1)
+            this.widgets_list.splice(to, 0, moved)
+            this.drag_moved = true
+            this.drag_last = id
+        },
+
+        async drag_end() {
+            if (this.drag_id === null) return  // drop и dragend приходят оба
+            this.drag_id = null
+            if (this.drag_moved) {
+                await fetch_post('/scada_api/mywidgets/', {'order': this.widgets_list.map(obj => obj.id)})
+            }
+            this.load_block = 0
+            this.load_last()
         },
 
         async move_widget(id, step) {
@@ -278,7 +324,7 @@ new Vue({
 
 
                 }
-                this.widgets_list = widgets_list;
+                if (this.drag_id === null) this.widgets_list = widgets_list;  // во время переноса не затираем порядок
 
                 /*
                 *
@@ -318,21 +364,32 @@ new Vue({
              }).then((data) => {
                  this.vent = data;
              });*/
-            if (this.load_block) {
+            if (this.load_block || this.loading) {
                 return;
             }
-            await this.load_widget_list(); // получаем перечень виджетов
-            await this.load_widget_new();
+            this.loading = true
+            try {
+                await this.load_widget_list(); // получаем перечень виджетов
+            } finally {
+                this.loading = false
+            }
 
         },
     },
     async created() {
-        await this.load_last(); // загружаем данные
+        await Promise.all([this.load_last(), this.load_widget_new()]); // загружаем данные
 
-
-        setInterval(function () { // обновляем данные каждые 20 секунд
-            this.load_last()
-        }.bind(this), 1000);
+        // обновляем данные каждую секунду, пока вкладка видна
+        setInterval(() => {
+            if (!document.hidden) this.load_last()
+        }, 1000);
+        // перечень доступных датчиков — редко (могли добавить новый датчик)
+        setInterval(() => {
+            if (!document.hidden) this.load_widget_new()
+        }, 60000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) this.load_last()
+        });
 
 
     }
