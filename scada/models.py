@@ -80,6 +80,8 @@ class SensorArhive (models.Model):
         verbose_name = 'Архив'
         verbose_name_plural = 'Архив'
         ordering = ['-date']
+        # графики и прореживание выбирают по датчику+типу за период
+        indexes = [models.Index(fields=['sensorId', 'type', 'date'], name='arhive_sensor_type_date')]
 
     def __str__(self):
         return f"{self.sensorId}, {self.type}:{self.data} от  {self.date:%X (%d-%m-%y)}"

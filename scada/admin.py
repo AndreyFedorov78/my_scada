@@ -15,7 +15,6 @@ class SensorAdmin(admin.ModelAdmin):
 class MyWidgetsAdmin(admin.ModelAdmin):
     list_display = ('id', 'userId', 'title')
 
-admin.site.register(Sensor, SensorAdmin)
 admin.site.register(SensorArhive, SensorAdmin)
 admin.site.register(tmp)
 admin.site.register(Widget)

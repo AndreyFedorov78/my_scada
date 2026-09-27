@@ -15,16 +15,28 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+# Секреты и локальные настройки — в my_scada/local_settings.py (в .gitignore, не коммитится)
+# или в переменных окружения. Пример local_settings.py:
+#   DB_PASSWORD = '...'
+#   SECRET_KEY = '...'   # python -c "import secrets; print(secrets.token_urlsafe(50))"
+#   DEBUG = True         # только дома
+try:
+    from . import local_settings as _local
+except ImportError:
+    _local = None
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-e-jbp#k622f!r3_o93-u(v!q@@!k@sy12=0blyr4#5mx=$e8f3'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def _setting(name, default=None):
+    return getattr(_local, name, os.environ.get(name, default))
 
-ALLOWED_HOSTS = ['*', '192.168.1.44', '192.168.2.200', '127.0.0.1', 'scada.fedorov.team']
+
+# Старый ключ оставлен запасным, чтобы деплой не упал; на сервере задать новый в local_settings.
+SECRET_KEY = _setting('SECRET_KEY', 'django-insecure-e-jbp#k622f!r3_o93-u(v!q@@!k@sy12=0blyr4#5mx=$e8f3')
+
+DEBUG = str(_setting('DEBUG', False)).lower() in ('1', 'true', 'yes')
+
+ALLOWED_HOSTS = ['scada.tldev.ru', 'i.tldev.ru', 'scada.fedorov.team',
+                 'localhost', '127.0.0.1', '192.168.1.44', '192.168.2.200']
 
 
 # Application definition
@@ -58,6 +70,10 @@ REST_FRAMEWORK = {
 'DEFAULT_AUTHENTICATION_CLASSES': (
     'rest_framework.authentication.SessionAuthentication',
 ),
+# Всё API только для вошедших: иначе аноним мог слать команды устройствам (devmanage)
+'DEFAULT_PERMISSION_CLASSES': (
+    'rest_framework.permissions.IsAuthenticated',
+),
 }
 
 ROOT_URLCONF = 'my_scada.urls'
@@ -81,18 +97,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'my_scada.wsgi.application'
 
 
-# Пароль БД хранится в my_scada/local_settings.py (в .gitignore, не коммитится)
-try:
-    from .local_settings import DB_PASSWORD
-except ImportError:
-    DB_PASSWORD = ''
+DB_PASSWORD = _setting('DB_PASSWORD', '')
 
 # Хост БД: на сервере localhost, дома — MySQL в виртуалке Multipass
 # (DB_HOST = '192.168.2.2' в local_settings.py или переменной окружения)
-try:
-    from .local_settings import DB_HOST
-except ImportError:
-    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_HOST = _setting('DB_HOST', 'localhost')
+
+# Текущие показания датчиков (scada/current.py). На сервере в Redis заняты базы 1, 5, 6, 7.
+REDIS_URL = _setting('REDIS_URL', 'redis://localhost:6379/2')
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

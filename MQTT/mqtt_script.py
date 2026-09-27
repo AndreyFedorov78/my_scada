@@ -23,13 +23,13 @@ django.setup()
 
 
 from paho.mqtt import client as mqtt_client
-from scada.models import tmp, SensorList, DataTypes, Sensor, SensorArhive
+from scada.models import SensorList, DataTypes, Sensor, SensorArhive
+from scada import current
 from django.db import connections
+from django.utils import timezone
 import random
 import time
 import datetime
-import hashlib
-import pytz
 
 # https://stackoverflow.com/questions/4530069/how-do-i-get-a-value-of-datetime-today-in-python-that-is-timezone-aware
 
@@ -64,63 +64,110 @@ def connect_mqtt():
     return client
 
 
+# --- Кэш справочников в памяти процесса ------------------------------------------------------
+# Датчики и типы почти не меняются: перечитываем их раз в META_TTL секунд (галочки «Включен»
+# и «Хранить историю» из админки подхватятся не позже чем через минуту), а не на каждое сообщение.
+META_TTL = 60
+sensors = {}        # id -> SensorList
+data_types = {}     # subtitle -> DataTypes
+meta_loaded_at = None    # time.monotonic() последней загрузки
+
+
+def load_meta():
+    global sensors, data_types, meta_loaded_at
+    sensors = {s.id: s for s in SensorList.objects.all()}
+    types = {}
+    for t in DataTypes.objects.order_by('id'):
+        types.setdefault(t.subtitle, t)     # в базе бывали дубли subtitle — берём первый
+    data_types = types
+    meta_loaded_at = time.monotonic()
+
+
+def get_sensor(sensor_id):
+    if meta_loaded_at is None or time.monotonic() - meta_loaded_at > META_TTL:
+        load_meta()
+    sensor = sensors.get(sensor_id)
+    if sensor is None:
+        # если датчик не найден, создаем его (выключенным — включают в админке)
+        sensor, _ = SensorList.objects.get_or_create(id=sensor_id)
+        sensors[sensor_id] = sensor
+    return sensor
+
+
+def get_data_type(subtitle):
+    data_type = data_types.get(subtitle)
+    if data_type is None:
+        data_type = DataTypes.objects.filter(subtitle=subtitle).order_by('id').first()
+        if data_type is None:
+            data_type = DataTypes.objects.create(subtitle=subtitle, title=subtitle)
+        data_types[subtitle] = data_type
+    return data_type
+
+
+# --- Текущие значения — в Redis (scada/current.py), таблица Sensor больше не пишется -------------
+
+def seed_current():
+    """Один раз при старте: переносим в Redis последние значения из таблицы Sensor, если в Redis
+    их ещё нет (первый запуск после перехода на Redis или Redis потерял данные)."""
+    r = current.client()
+    for row in Sensor.objects.select_related('type').order_by('-date'):   # свежие первыми, hsetnx оставит их
+        if row.type is not None and row.date is not None:
+            key = current.KEY.format(row.sensorId_id)
+            r.hsetnx(key, row.type.subtitle, f'{row.data}|{row.date.timestamp():.3f}')
+
+
+# --- Архив: не чаще точки в ARCHIVE_STEP -------------------------------------------------------
+# Та же схема, что была: «якорь» (предыдущая точка) + «хвост» (последнее показание). Пока от якоря
+# прошло меньше ARCHIVE_STEP, хвост перезаписывается новым показанием; иначе хвост становится
+# якорем и добавляется новая точка. Раньше то же делалось INSERT + 10 SELECT + DELETE на сообщение.
+ARCHIVE_STEP = datetime.timedelta(minutes=15)
+archive_state = {}  # (sensor_id, type_id) -> {'anchor': date|None, 'tail_pk': pk|None, 'tail_date': date|None}
+
+
+def save_archive(sensor, data_type, value, now):
+    key = (sensor.id, data_type.id)
+    state = archive_state.get(key)
+    if state is None:
+        last = list(SensorArhive.objects.filter(sensorId=sensor, type=data_type)
+                    .order_by('-date').values_list('pk', 'date')[:2])
+        state = {'tail_pk': last[0][0] if last else None,
+                 'tail_date': last[0][1] if last else None,
+                 'anchor': last[1][1] if len(last) > 1 else None}
+        archive_state[key] = state
+
+    if (state['anchor'] is not None and now - state['anchor'] < ARCHIVE_STEP
+            and SensorArhive.objects.filter(pk=state['tail_pk']).update(data=value, date=now)):
+        state['tail_date'] = now
+        return
+    record = SensorArhive.objects.create(sensorId=sensor, type=data_type, data=value)
+    state['anchor'] = state['tail_date']
+    state['tail_pk'], state['tail_date'] = record.pk, now
+
+
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
+        # топик my_scada/<id датчика>/<тип>, в теле целое число
         try:
-            msg_body = msg.payload.decode()
-        except:
+            value = msg.payload.decode()
+        except UnicodeDecodeError:
             return
-        #print (msg.topic,"   ",msg_body)
-        data = msg.topic.split('/')
-        data.append(msg.payload.decode())  ##!!!!
-        if len(data) < 4:
+        parts = msg.topic.split('/')
+        if len(parts) < 3 or not parts[1].isdigit() or not value.lstrip('-').isdigit():
             return
-        if not data[1].isdigit():
-            return
-        if not data[3].lstrip('-').isdigit():
+        subtitle = parts[2]
+        if not subtitle or len(subtitle) > DataTypes._meta.get_field('subtitle').max_length:
             return
 
-        if not SensorList.objects.filter(id=data[1]).exists():
-            # если датчик не найден, создаем его.
-            sensor = SensorList()
-            sensor.id = data[1]
-            sensor.save()
-        sensor = SensorList.objects.get(id=data[1])
-
+        sensor = get_sensor(int(parts[1]))
         if not sensor.active:
             return
-        if not DataTypes.objects.filter(subtitle=data[2]).exists():
-            datatype = DataTypes()
-            datatype.subtitle = data[2]
-            datatype.title = data[2]
-            datatype.save()
+        data_type = get_data_type(subtitle)
+        value = int(value)
+        now = timezone.now()
 
-        #Это место сбоило на рабочей базе!!!
-        #datatype = DataTypes.objects.get(subtitle=data[2])
-        datatype = DataTypes.objects.filter(subtitle=data[2])[0]
-        newRecord = Sensor()
-        arhive = SensorArhive()
-        arhive.sensorId = newRecord.sensorId = sensor
-        arhive.type = newRecord.type = datatype
-        data[3] = int(data[3])
-        if data[1]=="2320318795431936" and data[2]=="T":
-            data[3] = data[3] - 0
-            #print(f"data[2]={data[2]}, data[1]={data[1]}, {data[3]}")
-
-        arhive.data =  newRecord.data = data[3]
-        if arhive.sensorId.archive:
-           arhive.save()
-        newRecord.save()
-        sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
-                type=newRecord.type).exclude(pk=newRecord.pk)[1:]
-        for item in sensor:
-            item.delete()
-        for x in range(0, 10):  # данные могут поступать одновременно, надо качественно подчистить
-            sensor = SensorArhive.objects.filter(sensorId=newRecord.sensorId).filter(
-                type=newRecord.type).order_by('-date')[:3]
-            if len(sensor) == 3:
-                if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
-                    sensor[1].delete()
+        current.put(sensor.id, subtitle, value, now)
+        if sensor.archive:
+            save_archive(sensor, data_type, value, now)
     client.subscribe(topic)
     client.on_message = on_message
 
@@ -128,6 +175,7 @@ def subscribe(client: mqtt_client):
 def mqtt_start():
     global client  # Declare client as a global variable
     client = connect_mqtt()  # Изменение значения клиента
+    seed_current()
     subscribe(client)  # Подписка на MQTT
     client.loop_forever()
 

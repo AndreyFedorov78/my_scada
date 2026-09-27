@@ -1,27 +1,18 @@
 import datetime
-import hashlib
-import time
 import pytz
-import requests
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.generic import View
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .blynk import Blynk
-from .models import Sensor, tmp, SensorList, DataTypes, Widget, MyWidgets, SensorArhive
+from .models import SensorList, DataTypes, Widget, MyWidgets, SensorArhive
 from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
-from .serialalizers import SensorSerializer, SensorDetailSerializer, tmpSerializer
+from . import current
 from new_app import mqtt
 
 #mqtt.mqtt_start()
-
-def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
-
 
 class ButtonTest(LoginRequiredMixin, View):
     @staticmethod
@@ -45,7 +36,6 @@ class Clock(View):
 class DevManage(APIView):
     @staticmethod
     def get(request):
-        # result = Blynk()
         return Response(status=201)
 
     @staticmethod
@@ -68,66 +58,27 @@ class DevManage(APIView):
         return Response(status=300)
 
 
-# class SensorView(LoginRequiredMixin,APIView):
 class SensorView(APIView):
     @staticmethod
     def get(request):
-        sensor = Sensor.objects.all()[:200]
-        sv_serializer = SensorSerializer(sensor, many=True)
-        return Response(sv_serializer.data)
+        return Response(current.readings(SensorList.objects.all())[:200])
 
-    @staticmethod
-    def post(request):  # получение данных от датчика и записб в бд
-        sensor = SensorDetailSerializer(data=request.data)
-        if sensor.is_valid():
-            sensor = sensor.save()
-            sensor = Sensor.objects.filter(sensorId=sensor.sensorId).filter(type=sensor.type).order_by('-date')[:3]
-            if len(sensor) == 3:
-                if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
-                    sensor[1].delete()
-        return Response(status=201)
-
-    @staticmethod
-    def delete(request):
-        Sensor.objects.all().delete()
-        return Response(status=201)
-
-
-class SensorDetailView(LoginRequiredMixin, APIView):
-    @staticmethod
-    def get(request, pk):
-        sensor = Sensor.objects.get(id=pk)
-        serializer = SensorDetailSerializer(sensor)
-        return Response(serializer.data)
 
 class SensorDataView(LoginRequiredMixin, APIView):
     @staticmethod
     def post(request, pk, data_type):
-        sensor = Sensor.objects.filter(sensorId=pk, type__subtitle=data_type).order_by('-date')
-        if len(sensor) < 1:
+        sensor = SensorList.objects.filter(id=pk).first()
+        data_type_obj = DataTypes.objects.filter(subtitle=data_type).order_by('id').first()
+        if sensor is None or data_type_obj is None:
             return Response(None)
-        sensor = sensor[0]
-        serializer = SensorDetailSerializer(sensor)
-        return Response(serializer.data)
-
-
-
-
-
+        found = [r for r in current.readings([sensor], {data_type: data_type_obj}) if r['type']]
+        return Response(found[0] if found else None)
 
 
 class AllSensors(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
-        all_sensors = []
-        sensor = Sensor.objects.all().order_by('-date')
-        while len(sensor) > 0:
-            all_sensors.append(sensor[0])
-            sensor_id = sensor[0].sensorId
-            data_type = sensor[0].type
-            sensor = sensor.exclude(Q(sensorId=sensor_id) & Q(type=data_type))
-        serializer = SensorSerializer(all_sensors, many=True)
-        return Response(serializer.data)
+        return Response(current.readings(SensorList.objects.all()))
 
 
 class SensorLastDays(APIView):
@@ -157,67 +108,6 @@ class SensorLastDays(APIView):
         return Response(sensor_new)
 
 
-# class tmpView(LoginRequiredMixin, APIView):
-class tmpView(APIView):
-    @staticmethod
-    def get(request):
-        data = tmpSerializer(data=request.data)
-        if data.is_valid():
-            data.save()
-        return Response(status=201)
-
-    @staticmethod
-    def post(request):
-        # удаляем страрые данные
-        tmp.objects.filter(
-            date__lt=datetime.datetime.now(pytz.timezone('Europe/Moscow')) - datetime.timedelta(seconds=20)).delete()
-        # начинаем обработку
-        data = tmpSerializer(data=request.data)
-        if data.is_valid():
-            if 'data' in data.validated_data:
-                hashData = hashlib.md5(data.validated_data['data'].encode()).hexdigest()
-                # если строка прилетела в первый раз
-                if not tmp.objects.filter(data=hashData).exists():
-                    newRecord = tmp()
-                    newRecord.data = hashData
-                    newRecord.save()
-                    data = data.validated_data['data'].split(';')
-                    # будем разбирать только строки с четырямя данными
-                    if len(data) == 4 and data[0] == "ID":
-                        # Если датчик найден обрабатываем данные
-                        if SensorList.objects.filter(id=data[1]).exists():
-                            sensor = SensorList.objects.get(id=data[1])
-                            if sensor.active:
-                                if DataTypes.objects.filter(subtitle=data[2]).exists():
-                                    datatype = DataTypes.objects.get(subtitle=data[2])
-                                else:
-                                    datatype = DataTypes()
-                                    datatype.subtitle = data[2]
-                                    datatype.save()
-                                newRecord = Sensor()
-                                newRecord.sensorId = sensor
-                                newRecord.type = datatype
-                                try:
-                                    data[3] = int(data[3])
-                                    newRecord.data = data[3]
-                                    newRecord.save()
-                                    # удаляем записи в течение 15 минут после предпоследней
-                                    sensor = Sensor.objects.filter(sensorId=newRecord.sensorId).filter(
-                                        type=newRecord.type).order_by('-date')[:3]
-                                    if len(sensor) == 3:
-                                        if sensor[0].date - sensor[2].date < datetime.timedelta(minutes=15):
-                                            sensor[1].delete()
-                                except:
-                                    pass
-                        # Если датчик не найденс то здаем его
-                        else:
-                            sensor = SensorList()
-                            sensor.id = data[1]
-                            sensor.save()
-            return Response(status=201)
-        return Response(status=333)
-
-
 # Работа со списком доступных датчиков конкретного пользователя
 
 class UserWidgets(LoginRequiredMixin, APIView):
@@ -232,28 +122,27 @@ class UserWidgets(LoginRequiredMixin, APIView):
     def post(request, id=None):
 
         if id is None:
-            all_widgets = MyWidgets.objects.filter(userId_id=request.user).order_by('sort')
+            all_widgets = MyWidgets.objects.filter(userId_id=request.user).select_related('sensor').order_by('sort')
             serializer = MyWidgetsSerializer(all_widgets, many=True)
+            sensors = {w.sensor_id: w.sensor for w in all_widgets}
+            values = current.get_many(sensors)
+            rows = current.readings(sensors.values(), values=values)
+            now = timezone.now()
             for i in serializer.data:
+                sensor_id = i['sensor']['id']
+                i['data'] = [r for r in rows if r['sensorId']['id'] == sensor_id]
+                i['data'].sort(key=lambda x: x['type']['sort'] if x['type'] else 9999)
                 i['online'] = True
                 i['date'] = "--"
-                all_sensors = []
-                sensor = Sensor.objects.filter(sensorId__id=i['sensor']["id"]).order_by('-date')
-                while len(sensor) > 0:
-                    all_sensors.append(sensor[0])
-                    data_type = sensor[0].type
-                    sensor = sensor.exclude(type=data_type)
-                i['data'] = SensorSerializer(all_sensors, many=True).data
-                i['data'].sort(key=lambda x: x['type']['sort'])
-                if len(all_sensors) > 0:
-                    now = time.mktime(datetime.datetime.now(pytz.timezone('Europe/Moscow')).timetuple())
-                    dat = time.mktime(utc_to_local(all_sensors[0].date).timetuple())
-                    if (now - dat) > 600:
+                if values.get(sensor_id):
+                    last = max(date for _, date in values[sensor_id].values())
+                    local = timezone.localtime(last)
+                    if (now - last).total_seconds() > 600:
                         i['online'] = False
-                    if (now - dat) > (24 * 60 * 60):
-                        i['date'] = f"{all_sensors[0].date.day}/{all_sensors[0].date.month}/{all_sensors[0].date.year}"
+                    if (now - last).total_seconds() > 24 * 60 * 60:
+                        i['date'] = f"{local.day}/{local.month}/{local.year}"
                     else:
-                        i['date'] = f"{utc_to_local(all_sensors[0].date).hour}:{all_sensors[0].date.minute}"
+                        i['date'] = f"{local:%H:%M}"
             return Response(serializer.data)
         else:  # двигаем виджет
             title = request.data.get('title')
@@ -336,28 +225,24 @@ class OldIpad(View):
     @staticmethod
     def get(request):
         alarm_level = 35
-        kolodez = SensorList.objects.filter(id=1953992294)[0]
-        all_data = Sensor.objects.filter(sensorId=kolodez, type__subtitle='W')[0]
-        water = all_data.data
+        kolodez = current.client().hgetall(current.KEY.format(1953992294))
+        water = current.parse(kolodez['W'])[0]
+        waterCM, water_date = current.parse(kolodez['WCM'])
+        delta = (timezone.now() - water_date).total_seconds()
 
-        all_data = Sensor.objects.filter(sensorId=kolodez, type__subtitle='WCM')[0]
-        waterCM = all_data.data
-
-        delta = datetime.datetime.today().timestamp() - all_data.date.timestamp()
-
-        
         #pool = SensorList.objects.filter(title='Бассеин')[0]
-        #all_data = Sensor.objects.filter(sensorId=pool)[0]
         pool = 0
 
-        out_sensor = SensorList.objects.filter(title='Улица дача')[0]
-        all_data = Sensor.objects.filter(sensorId=out_sensor)
-        temperature = (all_data.filter(type__title="Температура")[0].data) / 10
+        temp_types = list(DataTypes.objects.filter(title="Температура").values_list('subtitle', flat=True))
 
-        home_sensor = SensorList.objects.filter(title='Гостинная дача')[0]
-        all_data = Sensor.objects.filter(sensorId=home_sensor)
-        temperature2 = (all_data.filter(type__title="Температура")[0].data) / 10
+        def temperature_of(title):
+            sensor = SensorList.objects.filter(title=title)[0]
+            fields = current.client().hgetall(current.KEY.format(sensor.id))
+            subtitle = next(t for t in temp_types if t in fields)
+            return current.parse(fields[subtitle])[0] / 10
 
+        temperature = temperature_of('Улица дача')
+        temperature2 = temperature_of('Гостинная дача')
 
         pressure = "" # all_data.filter(type__title="Давление")[0].data
         humidity = "" # all_data.filter(type__title="Влажность")[0].data / 10
@@ -385,7 +270,7 @@ class OldIpad(View):
 class Connect(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
-        answer = mqtt.client.is_connected()
+        answer = mqtt.client is not None and mqtt.client.is_connected()
         # mqtt.client.enable_logger()
         # subscribe=mqtt.client.
         return Response({'connect': answer})

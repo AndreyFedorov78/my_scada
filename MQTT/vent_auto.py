@@ -31,12 +31,13 @@ import pytz
 from django.db import connections
 from django.utils import timezone
 from paho.mqtt import publish
-from scada.models import Sensor
+from scada import current
 
 VENT_ID = 950559233          # устройство «Вентиляция»
 SPEED_PARAM = 'R-100'        # скорость вентилятора 0..3
 CO2_PARAM = 'CO'
 CO2_SENSORS = [1953992342, 39756490697949184]   # Гостиная, спальня23 (Кабинет Бориса не учитываем)
+CO2_TITLES = {1953992342: 'Гостиная', 39756490697949184: 'спальня23'}   # для лога
 CO2_HIGH = 900               # выше — скорость 3
 CO2_LOW = 700                # ниже — скорость 1
 SENSOR_TIMEOUT = datetime.timedelta(hours=1)
@@ -72,21 +73,19 @@ def decide(t, co2_values):
 def fresh_co2(now):
     """Последнее показание CO2 каждого датчика из CO2_SENSORS, если оно не старше часа."""
     latest = {}
-    rows = (Sensor.objects.filter(type__subtitle=CO2_PARAM, sensorId_id__in=CO2_SENSORS,
-                                  date__gte=now - SENSOR_TIMEOUT)
-            .order_by('-date').values_list('sensorId__title', 'data'))
-    for title, data in rows:
-        latest.setdefault(title, data)
+    for sensor_id in CO2_SENSORS:
+        reading = current.get(sensor_id, CO2_PARAM)
+        if reading and reading[1] >= now - SENSOR_TIMEOUT:
+            latest[CO2_TITLES.get(sensor_id, sensor_id)] = reading[0]
     return latest
 
 
 def current_speed(since=None):
     """Последнее значение R-100; с since — только пришедшее не раньше since (иначе None)."""
-    rows = Sensor.objects.filter(sensorId_id=VENT_ID, type__subtitle=SPEED_PARAM)
-    if since is not None:
-        rows = rows.filter(date__gte=since)
-    row = rows.order_by('-date').first()
-    return row.data if row else None
+    reading = current.get(VENT_ID, SPEED_PARAM)
+    if reading is None or (since is not None and reading[1] < since):
+        return None
+    return reading[0]
 
 
 def send_speed(speed):
