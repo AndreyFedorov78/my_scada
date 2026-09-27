@@ -1,29 +1,25 @@
 {% verbatim %}
 
-<div v-if="'object' == typeof item.data" style="width: 350px; vertical-align: bottom; position: relative;">
-    <span v-if="item.data.length">
-    <img src="/static/img/kolodec.png" class="kolodec">
+<!-- W — уровень воды, %; WCM — глубина воды, см -->
+<div style="width: 350px; vertical-align: bottom; position: relative;">
+    <span v-if="'W' in by_type">
+        <img src="/static/img/kolodec.png" class="kolodec">
 
-        <!-- максимальная высота 400, минимальная 50-->
-    <img v-if="item.online" :height="item.data[0].data/100*350+50" src="/static/img/water.gif"
-         style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
-    <img v-else :height="item.data[0].data/100*350+50" src="/static/img/water-stop.gif"
-         style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
-    <div class="water-back"></div>
-    <span class="water-show">
-       {{ item.data[0].data }}{{ item.data[0].type.units }}
-       </span>
-    <div style="width: 190px; position: absolute; bottom: 75px; left: 78px;">
-        <span  style="color: #04fc43;"><b>{{item.data[1].data/100}} м</b> </span><br>
-        <span v-if="item.online" style="color: #04fc43;"> <b>online</b></span>
-        <span v-else> <b class="alarm">offline</b> </span>
-    </div>
-        </span>
-    <span v-else> <h1>Нет данных</h1></span>
+        <!-- высота воды 50..400 px -->
+        <img :height="Math.min(Math.max(mb_element(item,'W'), 0), 100) / 100 * 350 + 50"
+             :src="item.online ? '/static/img/water.gif' : '/static/img/water-stop.gif'"
+             style="width: 190px;  position: absolute; bottom: 0; left: 78px;">
+        <div class="water-back"></div>
+        <span class="water-show">{{ mb_element(item,'W') }}%</span>
+        <div style="width: 190px; position: absolute; bottom: 75px; left: 78px;">
+            <span v-if="'WCM' in by_type" style="color: #04fc43;"><b>{{ mb_element(item,'WCM') / 100 }} м</b><br></span>
+            <span v-if="item.online" style="color: #04fc43;"><b>online</b></span>
+            <span v-else><b class="alarm">offline</b></span>
+        </div>
+    </span>
+    <span v-else><h1>Нет данных</h1></span>
 </div>
 
+<br>
 
-    <br>
-
-    {% endverbatim %}
-
+{% endverbatim %}

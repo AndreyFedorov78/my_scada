@@ -1,7 +1,7 @@
 {% verbatim %}
  <div class="pool_common">
  <img class="pool_img" src="/static/img/pool2.png">
-    <div class="pool_data" v-for="sensor, index in item.data">
+    <div class="pool_data" v-for="sensor, index in item.data" v-if="sensor.type">
                 <div v-if="sensor.type.units =='С'" class="pool">
             <span> {{ sensor.data/sensor.type.divider  }} С</span>
             <span> o</span>

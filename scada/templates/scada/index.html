@@ -42,14 +42,19 @@
         </div>
     </div>
 
+    <!-- Нет связи с сервером: показанные данные устарели -->
+    <div v-if="stale" class="connection-lost">
+        Нет связи с сервером<span v-if="last_ok">, данные на {{ last_ok_time }}</span>
+    </div>
+
     <!-- Блок отображения данных-->
     <div class="app"> <!-- оласть приложениея vue -->
 
 
-        <div class="card-deck row">
+        <div class="card-deck row" :class="{stale: stale}">
 
             <!-- Окна с виджетами -->
-            <div v-on:dblclick="details(item.id)" class="card" v-for="item in widgets_list" :key="item.id"
+            <div v-on:dblclick="details(item.id, $event)" class="card" v-for="item in widgets_list" :key="item.id"
                  draggable="true" :class="{dragging: drag_id == item.id}"
                  v-on:mousedown="drag_from_input = $event.target.tagName == 'INPUT'"
                  v-on:dragstart="drag_start(item.id, $event)"
@@ -67,28 +72,19 @@
                         <div v-if="item.online" class="online">online</div>
                         <div v-else class="online text-danger alarm">offline {{ item.date }}</div>
                         <input
-		                        v-on:keydown="load_block=1"
-		                        v-on:focusout="title_edit(item.id)"
-		                        v-on:keyup.enter="title_edit(item.id)"
-                                v-on:keyup.esc="load_block=0;load_last()"
-		                        v-model='item.title'>
+                                v-on:focus="title_focus(item)"
+                                v-on:blur="title_edit(item)"
+                                v-on:keyup.enter="$event.target.blur()"
+                                v-on:keyup.esc="title_cancel(item, $event)"
+                                v-model='item.title'>
 
                     </h4>
+                    <div v-if="cmd_errors[item.id]" class="cmd-state cmd-error">{{ cmd_errors[item.id] }}</div>
+                    <div v-else-if="cmd_pending(item)" class="cmd-state cmd-pending">команда отправлена, ждём устройство…</div>
                 </div>
 
-                <!--Содержимое -->
-
-                {% endverbatim %} <!-- предаем рендеринг обратно в Django-->
-                {% for widget in widgets %} <!-- идем по всем доступным виджетам-->
-                    {% verbatim %}
-                    <!-- силами vue показываем тот виджет на который ссылается текущий элемент при рендеренге силами vue -->
-
-                    <span v-if="item.sensor.widget.id == {%endverbatim %} {{ widget.id }} {% verbatim %} ">
-
-                                {% endverbatim %} {% include widget.filename %} <!-- вставляем виджет-->
-                            </span>
-                {% endfor %}
-                {% verbatim %}
+                <!--Содержимое: компонент виджета по его типу -->
+                <component v-if="item.sensor.widget" :is="'widget-' + item.sensor.widget.id" :item="item"></component>
 
             </div>
 
@@ -105,9 +101,9 @@
             <a v-on:click="details_clear()" href="##">X</a>
 
             <h3>{{ detail.title }}</h3>
-            <div class="details_chart" v-for="sensor in detail.sensors">
+            <div class="details_chart" v-for="(sensor, index) in detail.sensors">
                 <br>
-                <canvas :id="sensor.type.id"></canvas>
+                <canvas :ref="'chart' + index"></canvas>
 
 
                 <br><br>
@@ -119,21 +115,24 @@
         </div>
 
     </div>
-    {% endverbatim %}
 
-    <script src="/static/js/chart.js"></script>
-
-    <script> const csrf_token = "{{csrf_token}}"</script>
-    <script src="/static/js/vue.min.js"></script>
-    <script src="/static/js/scada.js"></script>
     <div class="sensor_add">
         <div v-for="i in widgets_new" v-on:click="add_widget(i.id)"><a href="##">{{ i.title }}</a></div>
 
     </div>
 
-    </main>
-    <br><br><br>
+</main>
+{% endverbatim %}
+
+<!-- Шаблоны виджетов: по одному на тип, из них scada.js делает Vue-компоненты widget-<id> -->
+{% for widget in widgets %}
+<script type="text/x-template" id="widget-tpl-{{ widget.id }}"><div class="widget-body">{% include widget.filename %}</div></script>
+{% endfor %}
+
+<script src="/static/js/chart.js"></script>
+<script> const csrf_token = "{{csrf_token}}"</script>
+<script src="/static/js/vue.min.js"></script>
+<script src="/static/js/scada.js"></script>
+<br><br><br>
 </body>
 </html>
-
-

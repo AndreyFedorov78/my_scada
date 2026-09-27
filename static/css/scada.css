@@ -499,3 +499,92 @@ body {
 .card.dragging {
     opacity: 0.4;
 }
+
+/* нет связи с сервером: данные на экране устарели */
+.connection-lost {
+    margin: 10px 20px 0;
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: #dc3545;
+    color: #fff;
+    font-weight: 800;
+    text-align: center;
+}
+
+.card-deck.stale .card {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+/* состояние команды устройству — отдельной строкой под заголовком */
+.card-header {
+    flex-wrap: wrap;
+}
+
+.cmd-state {
+    flex-basis: 100%;
+    font-size: 0.3em;
+    font-weight: 600;
+    margin-top: -0.3em;
+}
+
+.cmd-pending {
+    color: #007bff;
+    animation: cmd-pulse 1.2s ease-in-out infinite;
+}
+
+.cmd-error {
+    color: #dc3545;
+}
+
+@keyframes cmd-pulse {
+    50% { opacity: 0.3; }
+}
+
+/* виджет вентиляции */
+.vent {
+    display: inline-flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.vent-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100px;
+}
+
+.vent-icon,
+.vent-off {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vent-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 196px;
+}
+
+.vent-cell {
+    flex: 1;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.vent-off {
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+}
+
+.vent-info {
+    width: 60px;
+    align-items: center;
+    gap: 16px;
+}

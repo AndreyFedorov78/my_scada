@@ -79,6 +79,22 @@ class SensorDataView(LoginRequiredMixin, APIView):
         return Response(found[0] if found else None)
 
 
+class Values(LoginRequiredMixin, APIView):
+    """Только текущие значения датчиков виджетов пользователя — для частого опроса главной.
+    Структуру (названия, типы, порядок) фронт берёт из mywidgets/ при загрузке и изменениях."""
+    @staticmethod
+    def get(request):
+        sensor_ids = MyWidgets.objects.filter(userId=request.user).values_list('sensor_id', flat=True)
+        values = current.get_many(set(sensor_ids))
+        # id датчиков 64-битные — ключами-строками, чтобы JS не терял точность
+        return Response({
+            'now': timezone.now(),
+            'offline_after': OFFLINE_AFTER,
+            'values': {str(sensor_id): {subtitle: [value, date] for subtitle, (value, date) in fields.items()}
+                       for sensor_id, fields in values.items()},
+        })
+
+
 class AllSensors(LoginRequiredMixin, APIView):
     @staticmethod
     def get(request):
@@ -86,30 +102,20 @@ class AllSensors(LoginRequiredMixin, APIView):
 
 
 class SensorLastDays(APIView):
+    # больше точек график всё равно не покажет — архив прореживаем усреднением
+    MAX_POINTS = 400
+
     @staticmethod
     def get(request, sensor_id, data_type, days):
         start_date = timezone.now() - datetime.timedelta(days=days)
-        sensor = SensorArhive.objects.all().order_by('date').filter(sensorId=sensor_id, type=data_type,
-                                                                    date__gt=start_date)
-        sensor_new = []
-        actual_date = timezone.now() - datetime.timedelta(days=days)
-        dat = 0
-        counter = 0
-
-        for i in sensor:
-            sensor_new.append({'date': i.date, 'data': i.data})
-        """    if not (i.date.date() == actual_date.date() and i.date.hour == actual_date.hour):
-                if counter != 0:
-                    sensor_new.append({'date': actual_date, 'data': dat / counter})
-                actual_date = i.date
-                counter = 0
-                dat = 0
-            dat += i.data
-            counter += 1
-        sensor_new.append({'date': actual_date, 'data': dat / counter if counter != 0 else 0})
-        """
-
-        return Response(sensor_new)
+        rows = list(SensorArhive.objects.filter(sensorId=sensor_id, type=data_type, date__gt=start_date)
+                    .order_by('date').values_list('date', 'data'))
+        step = -(-len(rows) // SensorLastDays.MAX_POINTS) or 1  # округление вверх
+        result = []
+        for i in range(0, len(rows), step):
+            bucket = rows[i:i + step]
+            result.append({'date': bucket[0][0], 'data': sum(d for _, d in bucket) / len(bucket)})
+        return Response(result)
 
 
 # Работа со списком доступных датчиков конкретного пользователя
