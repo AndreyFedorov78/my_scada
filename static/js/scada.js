@@ -4,7 +4,9 @@ const headers_post = {                   // заголовок запросов
     'X-CSRFToken': csrf_token
 }
 
-const VALUES_PERIOD = 2000      // мс: опрос текущих значений
+const VALUES_PERIOD = 2000      // мс: опрос текущих значений, если нет живого потока MQTT
+const LIVE_POLL_PERIOD = 30000  // мс: опрос при живом потоке — подстраховка и старение online
+const LIVE_TOPIC = 'my_scada/+/+'  // показания: my_scada/<id датчика>/<тип>, в теле целое число
 const LAYOUT_PERIOD = 60000     // мс: перечитка структуры виджетов (названия, типы, новые датчики)
 const STALE_AFTER = 10          // с без ответа сервера — показываем «нет связи»
 const COMMAND_TIMEOUT = 90      // с: сколько ждём, что устройство выполнит команду (вентиляция ~70 с)
@@ -134,6 +136,8 @@ new Vue({
 
         values: null,       // последний ответ /scada_api/values/
         values_loading: false,
+        last_poll: 0,       // когда последний раз запрашивали /values/
+        live: false,        // есть живой поток показаний по MQTT/WebSocket
         layout_loading: false,
         last_ok: 0,         // когда последний раз сервер ответил (Date.now())
         now: Date.now(),    // тикает раз в секунду — для признака «нет связи»
@@ -197,7 +201,9 @@ new Vue({
             if (this.values_loading) return
             this.values_loading = true
             try {
+                this.last_poll = Date.now()
                 const values = await api_json('/scada_api/values/')
+                values.received = Date.now()
                 this.values = values
                 this.last_ok = this.now = Date.now()
                 if (this.apply_values(values, true)) this.load_layout()  // появился новый тип данных
@@ -208,9 +214,36 @@ new Vue({
             }
         },
 
+        // текущее время сервера: время ответа + сколько прошло с тех пор
+        server_now(values) {
+            return Date.parse(values.now) + (Date.now() - values.received)
+        },
+
+        // показание из MQTT: сразу на карточку и в снимок values (по нему тик считает online и команды)
+        on_live(topic, payload) {
+            const parts = topic.split('/')
+            if (parts.length !== 3 || !/^-?\d+$/.test(payload) || !this.values) return
+            const [, key, subtitle] = parts
+            const value = parseInt(payload)
+            const date = new Date(this.server_now(this.values)).toISOString()
+            for (const item of this.widgets_list) {
+                if (item.sensor_key !== key) continue
+                const fields = this.values.values[item.id] || (this.values.values[item.id] = {})
+                fields[subtitle] = [value, date]
+                const sensor = this.data_entry(item, subtitle)
+                if (sensor) {
+                    sensor.data = value
+                    sensor.date = date
+                }
+                this.apply_pending(item, fields)
+                item.online = true
+                if (Object.keys(fields).length > item.data.length) this.load_layout()  // новое показание
+            }
+        },
+
         // разложить значения по виджетам; true — если нужна перечитка структуры
         apply_values(values, fresh) {
-            const server_now = Date.parse(values.now)
+            const server_now = this.server_now(values)
             let need_layout = false
             for (const item of this.widgets_list) {
                 const fields = values.values[item.id] || {}
@@ -493,16 +526,31 @@ new Vue({
         },
     },
     async created() {
-        await this.load_layout()
+        try {
+            await this.load_layout()
+        } finally {
+            const loading = document.getElementById('app-loading')
+            if (loading) loading.remove()
+        }
         this.load_values()
+
+        // живой поток показаний; команды по-прежнему через Django
+        new MqttWs((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/mqtt', LIVE_TOPIC,
+            (topic, payload) => this.on_live(topic, payload),
+            alive => {
+                this.live = alive
+                if (!alive) this.load_values()
+            })
 
         setInterval(() => {
             if (!document.hidden) this.now = Date.now()  // в фоне опроса нет — и «нет связи» не копим
+            if (this.live) this.last_ok = this.now      // поток жив (брокер отвечает на пинги)
             if (this.values) this.apply_values(this.values, false)  // истечение ожидания команд
         }, 1000);
         // пока вкладка видна: значения часто, структуру редко
         setInterval(() => {
-            if (!document.hidden) this.load_values()
+            if (document.hidden) return
+            if (!this.live || Date.now() - this.last_poll > LIVE_POLL_PERIOD) this.load_values()
         }, VALUES_PERIOD);
         setInterval(() => {
             if (!document.hidden) this.load_layout()

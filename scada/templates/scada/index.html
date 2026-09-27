@@ -16,10 +16,13 @@
 </head>
 <body class="" style="">
 
+<!-- пока Vue не отрисовал страницу и не пришли виджеты — полоса загрузки вместо сырой разметки -->
+<div id="app-loading" class="app-loading"><div class="app-loading-bar"></div></div>
+
 {% verbatim %}
 
 
-<main class=" ml-sm-auto  px-md-4 " id="app">
+<main class=" ml-sm-auto  px-md-4 " id="app" v-cloak>
 
 
     <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
@@ -131,6 +134,7 @@
 <script src="/static/js/chart.js"></script>
 <script> const csrf_token = "{{csrf_token}}"</script>
 <script src="/static/js/vue.min.js"></script>
+<script src="/static/js/mqtt_ws.js"></script>
 <script src="/static/js/scada.js"></script>
 <br><br><br>
 </body>

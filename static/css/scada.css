@@ -588,3 +588,31 @@ body {
     align-items: center;
     gap: 16px;
 }
+
+/* загрузка страницы: сырую разметку Vue не показываем */
+[v-cloak] {
+    display: none;
+}
+
+.app-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    overflow: hidden;
+    background: rgba(0, 204, 3, 0.15);
+    z-index: 1000;
+}
+
+.app-loading-bar {
+    width: 40%;
+    height: 100%;
+    background: #00cc03;
+    animation: app-loading 1.1s ease-in-out infinite;
+}
+
+@keyframes app-loading {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+}

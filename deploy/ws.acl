@@ -1,0 +1,2 @@
+# /etc/mosquitto/ws.acl — браузеры (WebSocket 9001): только чтение показаний
+topic read my_scada/#

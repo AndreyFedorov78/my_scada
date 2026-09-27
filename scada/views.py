@@ -2,6 +2,7 @@ import datetime
 import pytz
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.generic import View
@@ -79,6 +80,14 @@ class SensorDataView(LoginRequiredMixin, APIView):
         return Response(found[0] if found else None)
 
 
+class MqttAuth(View):
+    """Проверка для nginx auth_request перед WebSocket /mqtt: пускаем только вошедших.
+    Не LoginRequiredMixin: auth_request понимает 2xx/401/403, редирект считает ошибкой."""
+    @staticmethod
+    def get(request):
+        return HttpResponse(status=204 if request.user.is_authenticated else 401)
+
+
 class Values(LoginRequiredMixin, APIView):
     """Только текущие значения датчиков виджетов пользователя — для частого опроса главной.
     Структуру (названия, типы, порядок) фронт берёт из mywidgets/ при загрузке и изменениях."""
@@ -150,6 +159,7 @@ class UserWidgets(LoginRequiredMixin, APIView):
             now = timezone.now()
             for i in serializer.data:
                 sensor_id = i['sensor']['id']
+                i['sensor_key'] = str(sensor_id)  # id 64-битный — строкой, для сверки с MQTT-топиками в JS
                 i['data'] = [r for r in rows if r['sensorId']['id'] == sensor_id]
                 i['data'].sort(key=lambda x: x['type']['sort'] if x['type'] else 9999)
                 i['online'] = True
