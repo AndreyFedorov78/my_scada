@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from scada.models import Sensor, SensorList, DataTypes, tmp, Widget, SensorArhive, MyWidgets
+from scada.models import SensorList, DataTypes, Widget, SensorArhive, MyWidgets
 
 
 class SensorAdmin(admin.ModelAdmin):
@@ -16,7 +16,6 @@ class MyWidgetsAdmin(admin.ModelAdmin):
     list_display = ('id', 'userId', 'title')
 
 admin.site.register(SensorArhive, SensorAdmin)
-admin.site.register(tmp)
 admin.site.register(Widget)
 admin.site.register(SensorList)
 admin.site.register(DataTypes)

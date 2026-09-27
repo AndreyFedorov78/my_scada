@@ -1,7 +1,6 @@
-from django.contrib import admin
-from django.urls import path, include
-from .views import SensorView, Index, AllSensors, DevManage, SensorLastDays, Values, MqttAuth
-from .views import UserWidgets, GetWidgetsList, Connect, SensorDataView
+from django.urls import path
+from .views import SensorView, AllSensors, DevManage, SensorLastDays, Values, MqttAuth
+from .views import UserWidgets, GetWidgetsList, SensorDataView
 
 urlpatterns = [
     path("sensor/", SensorView.as_view()),
@@ -15,6 +14,5 @@ urlpatterns = [
     path("sensor_data/<int:pk>/<str:data_type>/", SensorDataView.as_view()),
     path("sensor_last_days/<int:sensor_id>/<int:data_type>/<int:days>", SensorLastDays.as_view()),
 
-    path("connect/", Connect.as_view()),
 
 ]

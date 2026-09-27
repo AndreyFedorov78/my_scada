@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path , include
-from scada.views import Index, OldIpad, Clock, Connect, ButtonTest, Home
+from scada.views import Index, OldIpad, Clock, Home
 
 #from rest_framework import routers
 #import scada
@@ -24,9 +24,7 @@ urlpatterns = [
     path("", Index.as_view()),
     path("ipad", OldIpad.as_view()),
     path("home", Home.as_view()),
-    path("connect/", Connect.as_view()),
     path("clock", Clock.as_view()),
-    path("bt", ButtonTest.as_view()),
     path('admin/', admin.site.urls),
     path('api/',include('rest_framework.urls')),
     path('scada_api/', include('scada.urls')),

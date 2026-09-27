@@ -130,3 +130,8 @@ my_scada/local_settings.py
 
 # Автодеплой
 deploy.log
+
+# macOS
+.DS_Store
+._*
+identifier.sqlite

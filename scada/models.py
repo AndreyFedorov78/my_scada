@@ -95,18 +95,3 @@ class MyWidgets(models.Model):
     sensor = models.ForeignKey(SensorList, on_delete=models.CASCADE)
     title = models.CharField('Наименование', blank=False, null=False, max_length=150, default='')
     sort = models.IntegerField('Индекс Сортировки', blank=False, null=False, default=9999)
-
-
-
-class tmp(models.Model):
-    id = models.AutoField(db_column='id', primary_key=True)
-    data = models.TextField('Прилетело', blank=True, null=True)
-    date = models.DateTimeField('Создано', auto_now_add=True, blank=True, null=True)
-
-    class Meta:
-        verbose_name = 'Помойка'
-        verbose_name_plural = 'Помойка'
-        ordering = ['-id']
-
-    def __str__(self):
-        return str(self.id) + ' ' + str(self.data) + ' ' + str(self.date)

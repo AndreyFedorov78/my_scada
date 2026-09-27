@@ -110,22 +110,14 @@ REDIS_URL = _setting('REDIS_URL', 'redis://localhost:6379/2')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-        'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
-        #'NAME': 'tsn',
         'NAME': 'my_scada',
         'USER': 'user',
         'PASSWORD': DB_PASSWORD,
         'HOST': DB_HOST,
         'PORT': '3306',
     },
-    'default_old': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
 }
 
 
@@ -133,22 +125,6 @@ DATABASES = {
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = []
-"""
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-    ]
-"""
-
 
 
 # Internationalization

@@ -1,6 +1,5 @@
 import datetime
 import os
-import pytz
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -15,16 +14,8 @@ from .serialalizers import MyWidgetsSerializer, GetWidgetsListSerializer
 from . import current
 from new_app import mqtt
 
-#mqtt.mqtt_start()
-
 # датчик считается оффлайн, если от него нет данных дольше этого времени, с
 OFFLINE_AFTER = 30 * 60
-
-
-class ButtonTest(LoginRequiredMixin, View):
-    @staticmethod
-    def get(request):
-        return render(request, 'scada/bt.html')
 
 
 # статика главной: версия в ?v= — чтобы после деплоя браузер не держал старые js/css
@@ -286,8 +277,8 @@ class OldIpad(View):
 
         pressure = "" # all_data.filter(type__title="Давление")[0].data
         humidity = "" # all_data.filter(type__title="Влажность")[0].data / 10
-        hour = datetime.datetime.now(pytz.timezone('Europe/Moscow')).hour
-        minute = datetime.datetime.now(pytz.timezone('Europe/Moscow')).minute
+        hour = timezone.localtime().hour
+        minute = timezone.localtime().minute
 
         online = (delta < OFFLINE_AFTER)
         data = {
@@ -305,27 +296,3 @@ class OldIpad(View):
             'humidity': humidity
         }
         return render(request, 'scada/ipad2.html', data)
-
-
-class Connect(LoginRequiredMixin, APIView):
-    @staticmethod
-    def get(request):
-        answer = mqtt.client is not None and mqtt.client.is_connected()
-        # mqtt.client.enable_logger()
-        # subscribe=mqtt.client.
-        return Response({'connect': answer})
-
-
-"""
-Спарвочник ответов http :
-200 OK («хорошо»)[2][3];
-201 Created («создано»)[2][3][4];
-202 Accepted («принято»)[2][3];
-203 Non-Authoritative Information («информация не авторитетна»)[2][3];
-204 No Content («нет содержимого»)[2][3];
-205 Reset Content («сбросить содержимое»)[2][3];
-206 Partial Content («частичное содержимое»)[2][3];
-207 Multi-Status («многостатусный»)[5];
-208 Already Reported («уже сообщалось»)[6];
-226 IM Used («использовано IM»).
-"""
