@@ -68,6 +68,56 @@ document.querySelectorAll('script[id^="widget-tpl-"]').forEach(el => {
 })
 
 
+// --- График ---------------------------------------------------------------------------------------
+
+// категориальная палитра (светлый фон окна): цвет закреплён за позицией параметра в виджете
+const SERIES_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948']
+const CHART_TEXT = '#52514e'
+const CHART_GRID = '#e6e5e0'
+
+function time_label(ms) {
+    const date = new Date(ms)
+    return two_digits(date.getHours()) + ':' + two_digits(date.getMinutes())
+}
+
+// у параметров разные моменты замеров: под курсором берём ближайшую точку каждого параметра
+Chart.Interaction.modes.nearest_each = function (chart, event) {
+    const items = []
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex)
+        if (meta.hidden) return
+        let best = null
+        meta.data.forEach((element, index) => {
+            const distance = Math.abs(element.x - event.x)
+            if (best === null || distance < best.distance) best = {element, datasetIndex, index, distance}
+        })
+        if (best) items.push(best)
+    })
+    return items
+}
+
+// вертикальная линия под курсором
+const crosshair_plugin = {
+    id: 'crosshair',
+    afterDraw(chart) {
+        const active = chart.tooltip && chart.tooltip.getActiveElements()
+        if (!active || !active.length) return
+        const x = chart.tooltip.caretX
+        const {top, bottom} = chart.chartArea
+        const ctx = chart.ctx
+        ctx.save()
+        ctx.strokeStyle = CHART_TEXT
+        ctx.globalAlpha = 0.4
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(x, top)
+        ctx.lineTo(x, bottom)
+        ctx.stroke()
+        ctx.restore()
+    },
+}
+
+
 new Vue({
     el: '#app',
     data: {
@@ -78,6 +128,7 @@ new Vue({
         detail: {
             title: "",
             sensors: [],
+            empty: false,
         },
         detail_seq: 0,      // номер открытия окна: ответы для закрытого окна отбрасываем
 
@@ -348,7 +399,7 @@ new Vue({
 
         // --- Графики ------------------------------------------------------------------------------
 
-        details(id, event) {
+        async details(id, event) {
             if (['INPUT', 'A'].includes(event.target.tagName)) return  // двойной клик по названию — выделение слова
             const item = this.widgets_list.find(obj => obj.id == id)
             if (!item) return
@@ -357,54 +408,78 @@ new Vue({
             this.show_details = true
             this.detail.title = item.title
             this.detail.sensors = item.data.filter(sensor => sensor.type)
-            this.detail.sensors.forEach(async (sensor, index) => {
-                try {
-                    const rows = await api_json('/scada_api/sensor_last_days/' + sensor.sensorId.id + '/' + sensor.type.id + '/1')
-                    await this.$nextTick()
-                    if (seq !== this.detail_seq || !this.show_details) return  // окно уже закрыли
-                    const canvas = (this.$refs['chart' + index] || [])[0]
-                    if (canvas) this.show_chart(canvas, rows, sensor.type)
-                } catch (error) {
-                    this.failed(error)
-                }
-            })
+            try {
+                const series = await Promise.all(this.detail.sensors.map(sensor =>
+                    api_json('/scada_api/sensor_last_days/' + sensor.sensorId.id + '/' + sensor.type.id + '/1')))
+                await this.$nextTick()
+                if (seq !== this.detail_seq || !this.show_details) return  // окно уже закрыли
+                this.detail.empty = series.every(rows => !rows.length)
+                if (!this.detail.empty) this.show_chart(this.$refs.chart, this.detail.sensors, series)
+            } catch (error) {
+                this.failed(error)
+            }
         },
 
-        show_chart(canvas, rows, type) {
-            const labels = rows.map(row => {
-                const date = new Date(row.date)
-                return two_digits(date.getHours()) + ':' + two_digits(date.getMinutes())
+        // один график: общая ось времени, у каждого параметра своя шкала слева/справа своего цвета
+        show_chart(canvas, sensors, series) {
+            const datasets = []
+            const scales = {
+                x: {
+                    type: 'linear',
+                    grid: {color: CHART_GRID},
+                    ticks: {
+                        color: CHART_TEXT, maxRotation: 0, autoSkip: true, maxTicksLimit: 12,
+                        callback: value => time_label(value),
+                    },
+                },
+            }
+            sensors.forEach((sensor, index) => {
+                const color = SERIES_COLORS[index % SERIES_COLORS.length]
+                const axis = 'y' + index
+                datasets.push({
+                    label: sensor.type.title + (sensor.type.units ? ', ' + sensor.type.units : ''),
+                    data: series[index].map(row => ({x: Date.parse(row.date), y: row.data / sensor.type.divider})),
+                    yAxisID: axis,
+                    borderColor: color,
+                    backgroundColor: color,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    tension: 0,
+                })
+                scales[axis] = {
+                    position: index % 2 ? 'right' : 'left',
+                    grid: {display: index === 0, color: CHART_GRID},  // сетка только от первой шкалы
+                    border: {color: color, width: 2},  // цвет оси связывает шкалу с её линией
+                    ticks: {color: CHART_TEXT, maxTicksLimit: 6},
+                    title: {display: !!sensor.type.units, text: sensor.type.units, color: CHART_TEXT},
+                }
             })
             this.charts.push(new Chart(canvas.getContext('2d'), {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: type.title,
-                        data: rows.map(row => row.data / type.divider),
-                        borderColor: "#007bff",
-                        backgroundColor: "#007bff",
-                        borderWidth: 1,
-                        pointStyle: false,
-                        fill: false,
-                    }]
-                },
+                data: {datasets: datasets},
                 options: {
                     responsive: true,
                     animation: false,
+                    parsing: false,
+                    interaction: {mode: 'nearest_each', intersect: false},
                     plugins: {
                         legend: {
                             align: 'start',
                             position: 'top',
-                            labels: {usePointStyle: true, color: '#007bff'},
-                        }
+                            labels: {usePointStyle: true, pointStyle: 'line', color: CHART_TEXT},
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: items => items.length ? time_label(items[0].parsed.x) : '',
+                                label: item => ' ' + item.dataset.label + ': ' + (Math.round(item.parsed.y * 100) / 100)
+                                    + '  (' + time_label(item.parsed.x) + ')',
+                            },
+                        },
                     },
-                    interaction: {mode: 'nearest', axis: 'x', intersect: false},
-                    scales: {
-                        x: {ticks: {maxRotation: 0, minRotation: 0, autoSkip: true, maxTicksLimit: 30}},
-                        y: {beginAtZero: true, title: {display: true, text: type.units}},
-                    }
+                    scales: scales,
                 },
+                plugins: [crosshair_plugin],
             }));
         },
 
@@ -414,6 +489,7 @@ new Vue({
             this.show_details = false
             this.detail.title = ""
             this.detail.sensors = []
+            this.detail.empty = false
         },
     },
     async created() {

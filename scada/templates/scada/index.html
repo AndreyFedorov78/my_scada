@@ -101,13 +101,12 @@
             <a v-on:click="details_clear()" href="##">X</a>
 
             <h3>{{ detail.title }}</h3>
-            <div class="details_chart" v-for="(sensor, index) in detail.sensors">
+            <!-- все параметры виджета на одном графике, у каждого своя шкала -->
+            <div class="details_chart">
                 <br>
-                <canvas :ref="'chart' + index"></canvas>
-
-
+                <canvas ref="chart"></canvas>
+                <div v-if="detail.empty" class="text-muted">за сутки нет данных в архиве</div>
                 <br><br>
-
             </div>
 
 
