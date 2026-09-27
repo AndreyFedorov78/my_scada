@@ -12,7 +12,7 @@
     <link href="/static/css/bs/bootstrap.min.css" rel="stylesheet">
     <!-- Favicons -->
     <meta name="theme-color" content="#7952b3">
-    <link href="/static/css/scada.css" rel="stylesheet">
+    <link href="/static/css/scada.css?v={{ v }}" rel="stylesheet">
 </head>
 <body class="" style="">
 
@@ -129,8 +129,8 @@
 <script src="/static/js/chart.js"></script>
 <script> const csrf_token = "{{csrf_token}}"</script>
 <script src="/static/js/vue.min.js"></script>
-<script src="/static/js/mqtt_ws.js"></script>
-<script src="/static/js/scada.js"></script>
+<script src="/static/js/mqtt_ws.js?v={{ v }}"></script>
+<script src="/static/js/scada.js?v={{ v }}"></script>
 <br><br><br>
 </body>
 </html>

@@ -583,10 +583,22 @@ body {
     border-radius: 3px;
 }
 
+/* правая колонка по той же сетке строк, что и уровни (36px + зазор 4px), как в старой таблице:
+   калорифер — строки 1-2, ON/OFF — строка 3, ротор — строки 4-5 */
 .vent-info {
     width: 60px;
     align-items: center;
-    gap: 16px;
+}
+
+.vent-info > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+}
+
+.vent-info > .vent-row-2 {
+    height: 76px;
 }
 
 /* загрузка страницы: сырую разметку Vue не показываем */

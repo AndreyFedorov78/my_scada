@@ -29,11 +29,15 @@
     </div>
 
     <div class="vent-col vent-info">
-        <img v-if="mb_element(item,'R-750') != 6" src="/static/img/heating-off.png" width="50">
-        <img v-else src="/static/img/heating.png" width="50">
-        <span v-if="mb_element(item,'R-750') == 6" class="text-danger"><b>ON</b></span>
-        <span v-else class="text-secondary"><b>OFF</b></span>
-        <img src="/static/img/rotor.jpg" width="50">
+        <div class="vent-row-2">
+            <img v-if="mb_element(item,'R-750') != 6" src="/static/img/heating-off.png" width="50">
+            <img v-else src="/static/img/heating.png" width="50">
+        </div>
+        <div>
+            <span v-if="mb_element(item,'R-750') == 6" class="text-danger"><b>ON</b></span>
+            <span v-else class="text-secondary"><b>OFF</b></span>
+        </div>
+        <div class="vent-row-2"><img src="/static/img/rotor.jpg" width="50"></div>
     </div>
 </div>
 

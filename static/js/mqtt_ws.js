@@ -12,6 +12,7 @@ class MqttWs {
         this.retry = 1000                 // мс, растёт до 30 с
         this.alive = false
         this.last_seen = 0                // когда брокер последний раз что-то прислал
+        this.last_sent = 0                // когда мы последний раз что-то отправили
         this.buffer = new Uint8Array(0)
         this.decoder = new TextDecoder()
         this.encoder = new TextEncoder()
@@ -31,7 +32,7 @@ class MqttWs {
         this.ws = ws
         ws.binaryType = 'arraybuffer'
         this.buffer = new Uint8Array(0)
-        ws.onopen = () => ws.send(this.packet_connect())
+        ws.onopen = () => this.send(this.packet_connect())
         ws.onmessage = event => {
             this.last_seen = Date.now()
             this.receive(new Uint8Array(event.data))
@@ -42,6 +43,11 @@ class MqttWs {
             this.reconnect()
         }
         ws.onerror = () => ws.close()
+    }
+
+    send(packet) {
+        this.last_sent = Date.now()
+        this.ws.send(packet)
     }
 
     reconnect() {
@@ -62,7 +68,8 @@ class MqttWs {
             this.ws.close()   // молчит дольше keepalive — соединение подвисло
             return
         }
-        if (Date.now() - this.last_seen > this.keepalive * 500) this.ws.send(new Uint8Array([0xC0, 0]))  // PINGREQ
+        // брокер отключает клиента, от которого ничего не приходило 1.5 keepalive, даже если сам шлёт показания
+        if (Date.now() - this.last_sent > this.keepalive * 500) this.send(new Uint8Array([0xC0, 0]))  // PINGREQ
     }
 
     // --- кодирование пакетов ---
@@ -128,7 +135,7 @@ class MqttWs {
         if (type === 2) {                   // CONNACK
             if (body[1] === 0) {
                 this.retry = 1000
-                this.ws.send(this.packet_subscribe())
+                this.send(this.packet_subscribe())
             } else {
                 this.ws.close()
             }

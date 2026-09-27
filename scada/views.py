@@ -1,6 +1,8 @@
 import datetime
+import os
 import pytz
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -25,11 +27,19 @@ class ButtonTest(LoginRequiredMixin, View):
         return render(request, 'scada/bt.html')
 
 
+# статика главной: версия в ?v= — чтобы после деплоя браузер не держал старые js/css
+INDEX_STATIC = ('js/scada.js', 'js/mqtt_ws.js', 'css/scada.css')
+
+
+def static_version(files):
+    return int(max(os.path.getmtime(os.path.join(settings.STATIC_DIR, f)) for f in files))
+
+
 class Index(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
         widgets = Widget.objects.all()
-        return render(request, 'scada/index.html', {'widgets': widgets})
+        return render(request, 'scada/index.html', {'widgets': widgets, 'v': static_version(INDEX_STATIC)})
 
 
 class Clock(View):
